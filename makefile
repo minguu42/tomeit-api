@@ -1,5 +1,5 @@
-.PHONY:run
-run:
+.PHONY:dev
+dev:
 	@docker compose --file ./build/docker-compose.yaml up -d
 
 .PHONY:stop

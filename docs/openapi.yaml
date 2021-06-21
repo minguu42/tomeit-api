@@ -1,0 +1,227 @@
+openapi: 3.0.0
+
+info:
+  version: 0.1.0
+  title: tomeit API 仕様書
+  description: tomeit で利用する REST API の仕様書である.
+
+servers:
+  - description: ローカルの開発環境
+    url: http://localhost:8080
+
+tags:
+  - name: tasks
+    description: タスク関連 API
+  - name: pomodoros
+    description: ポモドーロ関連 API
+
+paths:
+  /tasks:
+    post:
+      summary: タスク作成 API
+      tags:
+        - tasks
+      description: |
+        タスクを作成する.
+        タスク名, 優先度, 期限を受け取り, ユーザと結びつけてデータベースに保存する.
+      parameters:
+        - $ref: "#/components/parameters/idToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: タスク1
+                priority:
+                  type: integer
+                  example: 2
+                deadline:
+                  type: string
+                  example: "2021-06-21"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    get:
+      summary: 未完了タスク一覧取得 API
+      tags:
+        - tasks
+      description: |
+        未完了のタスク一覧を取得する.
+        作られた順でタスクを最大20個取得する.
+      parameters:
+        - $ref: "#/components/parameters/idToken"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+  /tasks/done/today:
+    get:
+      summary: 今日完了したタスク一覧取得 API
+      tags:
+        - tasks
+      description: |
+        完了済みタスクを取得する.
+        新しい順から1週間前までのタスクを最大100個取得する.
+      parameters:
+        - $ref: "#/components/parameters/idToken"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+  /tasks/done/{taskId}:
+    put:
+      summary: タスク完了 API
+      tags:
+        - tasks
+      description: |
+        タスクを完了する.
+        taskId で一意のタスクを指定する.
+      parameters:
+        - $ref: "#/components/parameters/taskId"
+        - $ref: "#/components/parameters/idToken"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+  /pomodoros/logs:
+    post:
+      summary: ポモドーロログ作成 API
+      tags:
+        - pomodoros
+      description: |
+        ポモドーロの実行を記録する.
+      parameters:
+        - $ref: "#/components/parameters/idToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                taskId:
+                  type: integer
+                  example: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PomodoroLog"
+  /pomodoros/logs/today:
+    get:
+      summary: 今日行なったポモドーロログ一覧取得 API
+      tags:
+        - pomodoros
+      description: |
+        リクエストを送った日に実行したポモドーロの記録を一覧で取得する.
+      parameters:
+        - $ref: "#/components/parameters/idToken"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PomodoroLog"
+  /pomodoros/rest/count:
+    get:
+      summary: 次の15分休憩までのカウント取得 API
+      tags:
+        - pomodoros
+      description: |
+        次の15分休憩までの実行するポモドーロの数を取得する.
+      parameters:
+        - $ref: "#/components/parameters/idToken"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  countToNextRest:
+                    type: integer
+                    example: 3
+
+components:
+  parameters:
+    idToken:
+      name: Authorization
+      description: ユーザ固有の idToken
+      in: header
+      required: true
+      schema:
+        type: string
+    taskId:
+      name: taskId
+      description: タスク番号
+      in: path
+      required: true
+      schema:
+        type: integer
+        example: 1
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "タスク1"
+        priority:
+          type: integer
+          example: 2
+        deadline:
+          type: string
+          example: "2021-06-21"
+        pomodoroCount:
+          type: integer
+          example: 0
+        isDone:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          example: "2021-06-20T20:41:54+09:00"
+        updatedAt:
+          type: string
+          example: "2021-06-20T20:41:54+09:00"
+    PomodoroLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        task:
+          $ref: "#/components/schemas/Task"
+        createdAt:
+          type: string
+          example: "2021-06-20T20:41:54+09:00"

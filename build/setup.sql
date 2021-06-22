@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     user_id    INT          NOT NULL REFERENCES users(id),
     name       VARCHAR(120) NOT NULL,
     priority   INT          NOT NULL DEFAULT 0,
---     deadline   DATE         NOT NULL DEFAULT '0000-00-00',
+    deadline   DATE         NOT NULL DEFAULT ('0000-00-00'),
     created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

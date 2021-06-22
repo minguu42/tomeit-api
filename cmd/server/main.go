@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
@@ -16,6 +17,9 @@ func main() {
 
 	r.Use(middleware.Logger)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
+
+	tomeit.OpenDb()
+	defer tomeit.CloseDb()
 
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", tomeit.CreateTasks)

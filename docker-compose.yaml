@@ -1,0 +1,34 @@
+version: "3"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: build/Dockerfile
+    environment:
+      - PORT
+      - DATABASE_URL
+    container_name: tomeit-api
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/go/src/app
+    ports:
+      - ${PORT}:${PORT}
+    depends_on:
+      - db
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+    container_name: tomeit-api-db
+    restart: always
+    volumes:
+      - dev-data:/var/lib/mysql
+      - ./build/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+
+volumes:
+  dev-data:
+    driver: local

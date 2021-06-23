@@ -22,7 +22,7 @@ func main() {
 	defer tomeit.CloseDb()
 
 	r.Route("/tasks", func(r chi.Router) {
-		r.Post("/", tomeit.CreateTasks)
+		r.Post("/", tomeit.PostTask)
 	})
 
 	if err := http.ListenAndServe(":8080", r); err != nil {

@@ -37,7 +37,7 @@ func (t taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func CreateTasks(w http.ResponseWriter, r *http.Request) {
+func PostTask(w http.ResponseWriter, r *http.Request) {
 	data := &taskRequest{}
 	if err := render.Bind(r, data); err != nil {
 		_ = render.Render(w, r, errInvalidRequest(err))
@@ -45,9 +45,19 @@ func CreateTasks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	task := data.Task
-	// TODO: 要修正
-	//createdTask, err := insertTask(task.UserID, task.Name, task.Priority, task.Deadline)
+
+	createdTaskId, err := createTask(task.UserID, task.Name, task.Priority, task.Deadline)
+	if err != nil {
+		_ = render.Render(w, r, errInvalidRequest(err))
+		return
+	}
+
+	createdTask, err := getTaskById(createdTaskId)
+	if err != nil {
+		_ = render.Render(w, r, errInvalidRequest(err))
+		return
+	}
 
 	render.Status(r, http.StatusCreated)
-	_ = render.Render(w, r, newTaskResponse(task)) // TODO: 要修正
+	_ = render.Render(w, r, newTaskResponse(&createdTask))
 }

@@ -2,14 +2,15 @@ package tomeit
 
 import (
 	"fmt"
+	"time"
 )
 
-func createTask(userId int, name string, priority int, deadline string) (int64, error) {
+func createTask(userId int, name string, priority int, deadline time.Time) (int64, error) {
 	const q = `
 INSERT INTO tasks (user_id, name, priority, deadline)
 VALUES (?, ?, ?, ?);
 `
-	r, err := db.Exec(q, userId, name, priority, deadline)
+	r, err := db.Exec(q, userId, name, priority, deadline.Format("2006-01-02"))
 	if err != nil {
 		return 0, fmt.Errorf("exec failed: %w", err)
 	}
@@ -27,7 +28,7 @@ func getTaskById(id int64) (Task, error) {
 
 	var t Task
 
-	if err := db.QueryRow(q, id).Scan(&t.ID, &t.UserID, &t.Name, &t.Priority, &t.Deadline, &t.CreatedAt, &t.UpdatedAt); err != nil {
+	if err := db.QueryRow(q, id).Scan(&t.id, &t.userId, &t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
 		return Task{}, fmt.Errorf("queryRow failed: %w", err)
 	}
 

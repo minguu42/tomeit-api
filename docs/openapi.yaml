@@ -145,9 +145,12 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PomodoroLog"
+                type: object
+                properties:
+                  pomodoroLogs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PomodoroLog"
   /pomodoros/rest/count:
     get:
       summary: 次の15分休憩までのカウント取得 API
@@ -202,18 +205,18 @@ components:
         deadline:
           type: string
           example: "2021-06-21"
-        pomodoroCount:
-          type: integer
-          example: 0
         isDone:
           type: boolean
           example: false
+        pomodoroCount:
+          type: integer
+          example: 0
         createdAt:
           type: string
-          example: "2021-06-20T20:41:54+09:00"
+          example: "2021-06-23T12:21:49Z"
         updatedAt:
           type: string
-          example: "2021-06-20T20:41:54+09:00"
+          example: "2021-06-23T12:21:49Z"
     PomodoroLog:
       type: object
       properties:
@@ -224,4 +227,4 @@ components:
           $ref: "#/components/schemas/Task"
         createdAt:
           type: string
-          example: "2021-06-20T20:41:54+09:00"
+          example: "2021-06-23T12:21:49Z"

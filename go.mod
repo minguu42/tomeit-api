@@ -1,4 +1,4 @@
-module github.com/minguu42/tomeit-api
+module heroku.com/minguu42/tomeit-api
 
 go 1.16
 

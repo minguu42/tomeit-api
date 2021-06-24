@@ -1,6 +1,7 @@
-module heroku.com/minguu42/tomeit-api
+module github.com/minguu42/tomeit-api
 
 go 1.16
+// +heroku goVersion go1.16
 
 require (
 	firebase.google.com/go/v4 v4.6.0

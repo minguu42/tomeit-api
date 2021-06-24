@@ -4,9 +4,10 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"log"
+
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
-	"log"
 )
 
 var firebaseApp *firebase.App

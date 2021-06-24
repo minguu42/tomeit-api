@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-chi/cors"
 	"net/http"
+
+	"github.com/go-chi/cors"
 
 	"github.com/go-chi/render"
 	"github.com/minguu42/tomeit-api"
@@ -19,10 +20,10 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"http://localhost:3000", "https://tomeit.vercel.app"}, //TODO: 開発後は http://localhost:3000 を除外する.
-		AllowedMethods: []string{"GET", "POST", "PUT", "OPTIONS"},
-		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders: []string{"Link"},
+		AllowedOrigins:   []string{"http://localhost:3000", "https://tomeit.vercel.app"}, //TODO: 開発後は http://localhost:3000 を除外する.
+		AllowedMethods:   []string{"GET", "POST", "PUT", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 	}))
 

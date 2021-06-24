@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/cors"
 
@@ -37,7 +38,7 @@ func main() {
 		r.Post("/", tomeit.PostTask)
 	})
 
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	if err := http.ListenAndServe(":" + os.Getenv("PORT"), r); err != nil {
 		fmt.Println("ListenAndServe error:", err)
 	}
 }

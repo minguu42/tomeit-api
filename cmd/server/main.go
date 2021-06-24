@@ -17,9 +17,12 @@ func main() {
 
 	r.Use(middleware.Logger)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
+	r.Use(tomeit.UserCtx)
 
 	tomeit.OpenDb()
 	defer tomeit.CloseDb()
+
+	tomeit.InitFirebaseApp()
 
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", tomeit.PostTask)

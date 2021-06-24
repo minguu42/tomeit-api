@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func createTask(userId int, name string, priority int, deadline time.Time) (int64, error) {
+func createTask(userId int64, name string, priority int, deadline time.Time) (int64, error) {
 	const q = `
 INSERT INTO tasks (user_id, name, priority, deadline)
 VALUES (?, ?, ?, ?);

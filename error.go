@@ -19,7 +19,7 @@ func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func errInvalidRequest(err error) render.Renderer {
+func invalidRequestErr(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 400,
@@ -28,11 +28,29 @@ func errInvalidRequest(err error) render.Renderer {
 	}
 }
 
-func errRender(err error) render.Renderer {
+func authenticateErr(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 401,
+		StatusText:     "Error Authenticate",
+		ErrorText:      err.Error(),
+	}
+}
+
+func renderErr(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 422,
 		StatusText:     "Error rendering response",
+		ErrorText:      err.Error(),
+	}
+}
+
+func unexpectedErr(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 500,
+		StatusText:     "Unexpected error occur",
 		ErrorText:      err.Error(),
 	}
 }

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
     id              INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    digest_id_token VARCHAR(256) NOT NULL
+    digest_uid      VARCHAR(256) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tasks (

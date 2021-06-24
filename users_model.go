@@ -14,14 +14,11 @@ type User struct {
 
 func UserCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		client, err := firebaseApp.Auth(context.Background())
-		if err != nil {
-			_ = render.Render(w, r, authenticateErr(err))
-		}
-
 		idToken := r.Header.Get("Authorization")
 
-		token, err := client.VerifyIDToken(context.Background(), idToken)
+		ctx := r.Context()
+
+		token, err := verifyIDToken(ctx, firebaseApp, idToken)
 		if err != nil {
 			_ = render.Render(w, r, authenticateErr(err))
 		}
@@ -36,7 +33,7 @@ func UserCtx(next http.Handler) http.Handler {
 			}
 		}
 
-		ctx := context.WithValue(r.Context(), "user", user)
+		ctx = context.WithValue(ctx, "user", user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

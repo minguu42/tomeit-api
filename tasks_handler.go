@@ -59,13 +59,14 @@ func PostTask(w http.ResponseWriter, r *http.Request) {
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return
 	}
+	user := r.Context().Value("user").(User)
 
 	deadline, err := time.Parse("2006-01-02", data.Deadline)
 	if err != nil {
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return
 	}
-	createdTaskId, err := createTask(1, data.Name, data.Priority, deadline)
+	createdTaskId, err := createTask(user.id, data.Name, data.Priority, deadline)
 	if err != nil {
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return

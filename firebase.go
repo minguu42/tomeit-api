@@ -4,22 +4,33 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"log"
-	"os"
-
 	firebase "firebase.google.com/go/v4"
-	"google.golang.org/api/option"
+	"firebase.google.com/go/v4/auth"
+	"log"
 )
 
 var firebaseApp *firebase.App
 
 func InitFirebaseApp() {
 	var err error
-	opt := option.WithCredentialsFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-	firebaseApp, err = firebase.NewApp(context.Background(), nil, opt)
+	firebaseApp, err = firebase.NewApp(context.Background(), nil)
 	if err != nil {
 		log.Fatalf("initialize firebase firebaseApp failed: %v\n", err)
 	}
+}
+
+func verifyIDToken(ctx context.Context, app *firebase.App, idToken string) (*auth.Token, error) {
+	client, err := app.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := client.VerifyIDToken(ctx, idToken)
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
 }
 
 func hash(token string) string {

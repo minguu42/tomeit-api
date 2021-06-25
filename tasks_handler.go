@@ -2,7 +2,6 @@ package tomeit
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"time"
 
@@ -55,7 +54,6 @@ func (t taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
 }
 
 func PostTask(w http.ResponseWriter, r *http.Request) {
-	log.Println("PostTask start")
 	data := &taskRequest{}
 	if err := render.Bind(r, data); err != nil {
 		_ = render.Render(w, r, invalidRequestErr(err))
@@ -69,25 +67,18 @@ func PostTask(w http.ResponseWriter, r *http.Request) {
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return
 	}
-	log.Println("createTask start")
 	createdTaskId, err := createTask(user.id, data.Name, data.Priority, deadline)
 	if err != nil {
-		log.Println("createdTaskId err:", err)
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return
 	}
-	log.Println("createTask end")
 
-	log.Println("getTaskById start")
 	createdTask, err := getTaskById(createdTaskId)
 	if err != nil {
-		log.Println("getTaskById err:", err)
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return
 	}
-	log.Println("getTaskById end")
 
 	render.Status(r, http.StatusCreated)
 	_ = render.Render(w, r, newTaskResponse(&createdTask))
-	log.Println("PostTask end")
 }

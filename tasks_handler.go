@@ -2,6 +2,7 @@ package tomeit
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -54,11 +55,13 @@ func (t taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
 }
 
 func PostTask(w http.ResponseWriter, r *http.Request) {
+	log.Println("PostTask start")
 	data := &taskRequest{}
 	if err := render.Bind(r, data); err != nil {
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return
 	}
+	log.Println("context")
 	user := r.Context().Value("user").(User)
 
 	deadline, err := time.Parse("2006-01-02", data.Deadline)
@@ -80,4 +83,5 @@ func PostTask(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusCreated)
 	_ = render.Render(w, r, newTaskResponse(&createdTask))
+	log.Println("PostTask end")
 }

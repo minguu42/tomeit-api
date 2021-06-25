@@ -64,9 +64,12 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
   /tasks/done/today:
     get:
       summary: 今日完了したタスク一覧取得 API

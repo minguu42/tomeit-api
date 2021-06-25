@@ -49,6 +49,14 @@ func newTaskResponse(task *Task) *taskResponse {
 	return &resp
 }
 
+func newTasksResponse(tasks []*Task) []render.Renderer {
+	var list []render.Renderer
+	for _, task := range tasks {
+		list = append(list, newTaskResponse(task))
+	}
+	return list
+}
+
 func (t taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
@@ -80,4 +88,15 @@ func PostTask(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusCreated)
 	_ = render.Render(w, r, newTaskResponse(&createdTask))
+}
+
+func GetTasks(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(User)
+
+	tasks, err := getUndoneTasksByUserID(user.id)
+	if err != nil {
+		_ = render.Render(w, r, invalidRequestErr(err))
+	}
+
+	_ = render.RenderList(w, r, newTasksResponse(tasks))
 }

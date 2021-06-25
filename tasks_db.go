@@ -47,7 +47,7 @@ WHERE user_id = ? AND is_done = FALSE
 	}
 	for rows.Next() {
 		var t Task
-		if err := rows.Scan(&t.id, &t.name, &t.priority, &t.deadline, &t.createdAt, &t.updatedAt); err != nil {
+		if err := rows.Scan(&t.id, &t.userId, &t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
 		tasks = append(tasks, &t)

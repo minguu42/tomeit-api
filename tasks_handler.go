@@ -35,6 +35,10 @@ type taskResponse struct {
 	UpdatedAt     string `json:"updatedAt"`
 }
 
+type tasksResponse struct {
+	Tasks []*taskResponse `json:"tasks"`
+}
+
 func newTaskResponse(task *Task) *taskResponse {
 	resp := taskResponse{
 		Id:            task.id,
@@ -49,15 +53,21 @@ func newTaskResponse(task *Task) *taskResponse {
 	return &resp
 }
 
-func newTasksResponse(tasks []*Task) []render.Renderer {
-	var list []render.Renderer
-	for _, task := range tasks {
-		list = append(list, newTaskResponse(task))
+func newTasksResponse(tasks []*Task) *tasksResponse {
+	var ts []*taskResponse
+	for _, t := range tasks {
+		ts = append(ts, newTaskResponse(t))
 	}
-	return list
+	var resp tasksResponse
+	resp.Tasks = ts
+	return &resp
 }
 
 func (t taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func (ts tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
@@ -96,7 +106,8 @@ func GetTasks(w http.ResponseWriter, r *http.Request) {
 	tasks, err := getUndoneTasksByUserID(user.id)
 	if err != nil {
 		_ = render.Render(w, r, invalidRequestErr(err))
+		return
 	}
 
-	_ = render.RenderList(w, r, newTasksResponse(tasks))
+	_ = render.Render(w, r, newTasksResponse(tasks))
 }

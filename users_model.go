@@ -49,7 +49,7 @@ func mockUserCtx(next http.Handler) http.Handler {
 		ctx := r.Context()
 
 		user := User{
-			id: 1,
+			id:        1,
 			digestUID: hash("digestUID"),
 		}
 

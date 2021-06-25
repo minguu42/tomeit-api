@@ -34,7 +34,11 @@ func TestMain(m *testing.M) {
 	r.Use(mockUserCtx)
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", PostTask)
-		r.Get("/", GetTasks)
+		r.Get("/", GetUndoneTasks)
+
+		r.Route("/done", func(r chi.Router) {
+			r.Get("/", GetDoneTasks)
+		})
 	})
 
 	ts := httptest.NewServer(r)
@@ -104,9 +108,39 @@ func TestPostTask(t *testing.T) {
 	})
 }
 
-func TestGetTasks(t *testing.T) {
+func TestGetUndoneTasks(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		req, err := http.NewRequest("GET", url+"/tasks", nil)
+		if err != nil {
+			t.Errorf("Create request failed: %v", err)
+		}
+		req.Header.Add("Authorization", "someIdToken")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Errorf("Do request failed: %v", err)
+		}
+
+		bytes, err := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if err != nil {
+			t.Errorf("Read response body failed: %v", err)
+		}
+
+		var body tasksResponse
+		if err := json.Unmarshal(bytes, &body); err != nil {
+			t.Errorf("Unmarshal json failed: %v", err)
+		}
+
+		if resp.StatusCode != 200 {
+			t.Errorf("Status code should be 200, but %v", resp.StatusCode)
+		}
+	})
+}
+
+func TestGetDoneTasks(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
+		req, err := http.NewRequest("GET", url+"/tasks/done", nil)
 		if err != nil {
 			t.Errorf("Create request failed: %v", err)
 		}

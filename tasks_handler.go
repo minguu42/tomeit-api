@@ -100,10 +100,22 @@ func PostTask(w http.ResponseWriter, r *http.Request) {
 	_ = render.Render(w, r, newTaskResponse(&createdTask))
 }
 
-func GetTasks(w http.ResponseWriter, r *http.Request) {
+func GetUndoneTasks(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(User)
 
 	tasks, err := getUndoneTasksByUserID(user.id)
+	if err != nil {
+		_ = render.Render(w, r, invalidRequestErr(err))
+		return
+	}
+
+	_ = render.Render(w, r, newTasksResponse(tasks))
+}
+
+func GetDoneTasks(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(User)
+
+	tasks, err := getDoneTasksByUserID(user.id)
 	if err != nil {
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return

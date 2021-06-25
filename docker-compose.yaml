@@ -29,6 +29,15 @@ services:
     volumes:
       - dev-data:/var/lib/mysql
       - ./build/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+  docs:
+    image: swaggerapi/swagger-ui
+    container_name: tomeit-api-docs
+    environment:
+      API_URL: openapi.yaml
+    ports:
+      - "8000:8080"
+    volumes:
+      - ./docs/openapi.yaml:/usr/share/nginx/html/openapi.yaml
 
 volumes:
   dev-data:

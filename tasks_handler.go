@@ -61,7 +61,7 @@ func PostTask(w http.ResponseWriter, r *http.Request) {
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return
 	}
-	log.Println("context")
+
 	user := r.Context().Value("user").(User)
 
 	deadline, err := time.Parse("2006-01-02", data.Deadline)
@@ -69,17 +69,23 @@ func PostTask(w http.ResponseWriter, r *http.Request) {
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return
 	}
+	log.Println("createTask start")
 	createdTaskId, err := createTask(user.id, data.Name, data.Priority, deadline)
 	if err != nil {
+		log.Println("createdTaskId err:", err)
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return
 	}
+	log.Println("createTask end")
 
+	log.Println("getTaskById start")
 	createdTask, err := getTaskById(createdTaskId)
 	if err != nil {
+		log.Println("getTaskById err:", err)
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return
 	}
+	log.Println("getTaskById end")
 
 	render.Status(r, http.StatusCreated)
 	_ = render.Render(w, r, newTaskResponse(&createdTask))

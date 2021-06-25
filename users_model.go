@@ -2,6 +2,7 @@ package tomeit
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -14,6 +15,7 @@ type User struct {
 
 func UserCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("UserCtx start")
 		idToken := r.Header.Get("Authorization")
 
 		ctx := r.Context()
@@ -34,6 +36,7 @@ func UserCtx(next http.Handler) http.Handler {
 		}
 
 		ctx = context.WithValue(ctx, "user", user)
+		log.Println("userContext end")
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

@@ -64,17 +64,20 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
-  /tasks/done/today:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
+  /tasks/done:
     get:
-      summary: 今日完了したタスク一覧取得 API
+      summary: 完了済みタスク一覧取得 API
       tags:
         - tasks
       description: |
         完了済みタスクを取得する.
-        新しい順から1週間前までのタスクを最大100個取得する.
+        新しい順から1週間前までのタスクを最大20個取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
       responses:
@@ -130,13 +133,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PomodoroLog"
-  /pomodoros/logs/today:
     get:
-      summary: 今日行なったポモドーロログ一覧取得 API
+      summary: ポモドーロログ一覧取得 API
       tags:
         - pomodoros
       description: |
-        リクエストを送った日に実行したポモドーロの記録を一覧で取得する.
+        ポモドーロログを一覧で取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
       responses:

@@ -35,6 +35,12 @@ func main() {
 	r.Use(tomeit.UserCtx)
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", tomeit.PostTask)
+		r.Get("/", tomeit.GetUndoneTasks)
+
+		r.Route("/done", func(r chi.Router) {
+			r.Get("/", tomeit.GetDoneTasks)
+			r.Put("/{taskId}", tomeit.PutTaskDone)
+		})
 	})
 
 	if err := http.ListenAndServe(":8080", r); err != nil {

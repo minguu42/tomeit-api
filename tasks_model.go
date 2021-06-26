@@ -3,8 +3,8 @@ package tomeit
 import "time"
 
 type Task struct {
-	id        int
-	userId    int
+	id        int64
+	userId    int64
 	name      string
 	priority  int
 	deadline  time.Time

@@ -74,3 +74,12 @@ WHERE user_id = ? AND is_done = TRUE
 	}
 	return tasks, nil
 }
+
+func completeTask(taskId int64) error {
+	const q = `UPDATE tasks SET is_done = TRUE WHERE id = ?`
+
+	if _, err := db.Exec(q, taskId); err != nil {
+		return fmt.Errorf("exec failed: %w", err)
+	}
+	return nil
+}

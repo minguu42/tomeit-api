@@ -38,6 +38,7 @@ func TestMain(m *testing.M) {
 
 		r.Route("/done", func(r chi.Router) {
 			r.Get("/", GetDoneTasks)
+			r.Put("/{taskId}", PutTaskDone)
 		})
 	})
 
@@ -164,6 +165,42 @@ func TestGetDoneTasks(t *testing.T) {
 
 		if resp.StatusCode != 200 {
 			t.Errorf("Status code should be 200, but %v", resp.StatusCode)
+		}
+	})
+}
+
+func TestPutTaskDone(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
+		req, err := http.NewRequest("PUT", url+"/tasks/done/1", nil)
+		if err != nil {
+			t.Errorf("Create request failed: %v", err)
+		}
+		req.Header.Add("Authorization", "someIdToken")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Errorf("Do request failed: %v", err)
+		}
+
+		bytes, err := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if err != nil {
+			t.Errorf("Read response body failed: %v", err)
+		}
+
+		var body taskResponse
+		if err := json.Unmarshal(bytes, &body); err != nil {
+			t.Errorf("Unmarshal json failed: %v", err)
+		}
+
+		if resp.StatusCode != 200 {
+			t.Errorf("Status code should be 200, but %v", err)
+		}
+		if body.Id != 1 {
+			t.Errorf("Id should be 1, but %v", body.Id)
+		}
+		if body.IsDone != true {
+			t.Errorf("IsDone should be true, but %v", body.IsDone)
 		}
 	})
 }

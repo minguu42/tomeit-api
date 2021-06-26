@@ -2,7 +2,9 @@ package tomeit
 
 import (
 	"errors"
+	"github.com/go-chi/chi/v5"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/render"
@@ -25,7 +27,7 @@ func (t *taskRequest) Bind(r *http.Request) error {
 }
 
 type taskResponse struct {
-	Id            int    `json:"id"`
+	Id            int64    `json:"id"`
 	Name          string `json:"name"`
 	Priority      int    `json:"priority"`
 	Deadline      string `json:"deadline"`
@@ -122,4 +124,39 @@ func GetDoneTasks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = render.Render(w, r, newTasksResponse(tasks))
+}
+
+func PutTaskDone(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(User)
+
+	strTaskId := chi.URLParam(r, "taskId")
+	if strTaskId == "" {
+		_ = render.Render(w, r, invalidRequestErr(errors.New("URL path does not have taskId")))
+		return
+	}
+
+	taskId, err := strconv.ParseInt(strTaskId, 10, 64)
+	if err != nil {
+		_ = render.Render(w, r, invalidRequestErr(errors.New("taskId must be number")))
+		return
+	}
+
+	task, err := getTaskById(taskId)
+	if err != nil {
+		_ = render.Render(w, r, invalidRequestErr(errors.New("task does not exits")))
+		return
+	}
+
+	if user.id != task.userId {
+		_ = render.Render(w, r, authenticateErr(errors.New("you do not own this task")))
+		return
+	}
+
+	if err := completeTask(task.id); err != nil {
+		_ = render.Render(w, r, unexpectedErr(err))
+		return
+	}
+	task.isDone = true
+
+	_ = render.Render(w, r, newTaskResponse(&task))
 }

@@ -133,13 +133,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PomodoroLog"
-  /pomodoros/logs/today:
     get:
-      summary: 今日行なったポモドーロログ一覧取得 API
+      summary: ポモドーロログ一覧取得 API
       tags:
         - pomodoros
       description: |
-        リクエストを送った日に実行したポモドーロの記録を一覧で取得する.
+        ポモドーロログを一覧で取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
       responses:

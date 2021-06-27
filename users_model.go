@@ -48,9 +48,12 @@ func mockUserCtx(next http.Handler) http.Handler {
 
 		ctx := r.Context()
 
-		user := User{
-			id:        1,
-			digestUID: hash("digestUID"),
+		user, err := getUserByDigestUID(hash("digestUID"))
+		if err != nil {
+			user, err = createUser(hash("digestUID"))
+			if err != nil {
+				_ = render.Render(w, r, unexpectedErr(err))
+			}
 		}
 
 		ctx = context.WithValue(ctx, "user", user)

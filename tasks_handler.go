@@ -38,6 +38,18 @@ type taskResponse struct {
 	UpdatedAt     string `json:"updatedAt"`
 }
 
+func (t taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+type tasksResponse struct {
+	Tasks []*taskResponse `json:"tasks"`
+}
+
+func (ts tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
 func newTaskResponse(task *Task) *taskResponse {
 	resp := taskResponse{
 		Id:            task.id,
@@ -52,14 +64,6 @@ func newTaskResponse(task *Task) *taskResponse {
 	return &resp
 }
 
-func (t taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-type tasksResponse struct {
-	Tasks []*taskResponse `json:"tasks"`
-}
-
 func newTasksResponse(tasks []*Task) *tasksResponse {
 	var ts []*taskResponse
 	for _, t := range tasks {
@@ -70,38 +74,38 @@ func newTasksResponse(tasks []*Task) *tasksResponse {
 	return &resp
 }
 
-func (ts tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
 func PostTask(w http.ResponseWriter, r *http.Request) {
 	data := &taskRequest{}
 	if err := render.Bind(r, data); err != nil {
-		_ = render.Render(w, r, invalidRequestErr(err))
+		_ = render.Render(w, r, errInvalidRequest(err))
 		return
 	}
-	user := r.Context().Value("user").(User)
 
 	deadline, err := time.Parse("2006-01-02", data.Deadline)
 	if err != nil {
-		_ = render.Render(w, r, invalidRequestErr(err))
+		_ = render.Render(w, r, errInvalidRequest(err))
 		return
 	}
 
-	createdTaskId, err := createTask(user.id, data.Name, data.Priority, deadline)
+	user := r.Context().Value("user").(User)
+
+	taskId, err := createTask(user.id, data.Name, data.Priority, deadline)
 	if err != nil {
-		_ = render.Render(w, r, invalidRequestErr(err))
+		_ = render.Render(w, r, errInvalidRequest(err))
 		return
 	}
 
-	createdTask, err := getTaskById(createdTaskId)
+	task, err := getTaskById(taskId)
 	if err != nil {
-		_ = render.Render(w, r, invalidRequestErr(err))
+		_ = render.Render(w, r, errInvalidRequest(err))
 		return
 	}
 
 	render.Status(r, http.StatusCreated)
-	_ = render.Render(w, r, newTaskResponse(&createdTask))
+	if err = render.Render(w, r, newTaskResponse(&task)); err != nil {
+		_ = render.Render(w, r, errRender(err))
+		return
+	}
 }
 
 func GetUndoneTasks(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +113,7 @@ func GetUndoneTasks(w http.ResponseWriter, r *http.Request) {
 
 	tasks, err := getUndoneTasksByUserID(user.id)
 	if err != nil {
-		_ = render.Render(w, r, invalidRequestErr(err))
+		_ = render.Render(w, r, errInvalidRequest(err))
 		return
 	}
 
@@ -121,7 +125,7 @@ func GetDoneTasks(w http.ResponseWriter, r *http.Request) {
 
 	tasks, err := getDoneTasksByUserID(user.id)
 	if err != nil {
-		_ = render.Render(w, r, invalidRequestErr(err))
+		_ = render.Render(w, r, errInvalidRequest(err))
 		return
 	}
 
@@ -133,29 +137,29 @@ func PutTaskDone(w http.ResponseWriter, r *http.Request) {
 
 	strTaskId := chi.URLParam(r, "taskId")
 	if strTaskId == "" {
-		_ = render.Render(w, r, invalidRequestErr(errors.New("URL path does not have taskId")))
+		_ = render.Render(w, r, errInvalidRequest(errors.New("URL path does not have taskId")))
 		return
 	}
 
 	taskId, err := strconv.ParseInt(strTaskId, 10, 64)
 	if err != nil {
-		_ = render.Render(w, r, invalidRequestErr(errors.New("taskId must be number")))
+		_ = render.Render(w, r, errInvalidRequest(errors.New("taskId must be number")))
 		return
 	}
 
 	task, err := getTaskById(taskId)
 	if err != nil {
-		_ = render.Render(w, r, invalidRequestErr(errors.New("task does not exits")))
+		_ = render.Render(w, r, errInvalidRequest(errors.New("task does not exits")))
 		return
 	}
 
 	if user.id != task.userId {
-		_ = render.Render(w, r, authenticateErr(errors.New("you do not own this task")))
+		_ = render.Render(w, r, errAuthenticate(errors.New("you do not own this task")))
 		return
 	}
 
 	if err := completeTask(task.id); err != nil {
-		_ = render.Render(w, r, unexpectedErr(err))
+		_ = render.Render(w, r, errUnexpectCondition(err))
 		return
 	}
 	task.isDone = true

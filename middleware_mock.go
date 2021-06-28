@@ -12,7 +12,7 @@ func mockUserCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		idToken := r.Header.Get("Authorization")
 		if idToken == "" {
-			_ = render.Render(w, r, authenticateErr(errors.New("authorization header is empty")))
+			_ = render.Render(w, r, errAuthenticate(errors.New("authorization header is empty")))
 		}
 
 		ctx := r.Context()
@@ -21,7 +21,7 @@ func mockUserCtx(next http.Handler) http.Handler {
 		if err != nil {
 			user, err = createUser(hash("digestUID"))
 			if err != nil {
-				_ = render.Render(w, r, unexpectedErr(err))
+				_ = render.Render(w, r, errUnexpectCondition(err))
 			}
 		}
 

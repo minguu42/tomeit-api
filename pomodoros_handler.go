@@ -42,7 +42,7 @@ func (resp pomodoroLogResponse) Render(w http.ResponseWriter, r *http.Request) e
 func PostPomodoroLog(w http.ResponseWriter, r *http.Request) {
 	data := &pomodoroLogRequest{}
 	if err := render.Bind(r, data); err != nil {
-		_ = render.Render(w, r, invalidRequestErr(err))
+		_ = render.Render(w, r, errInvalidRequest(err))
 		return
 	}
 
@@ -50,18 +50,18 @@ func PostPomodoroLog(w http.ResponseWriter, r *http.Request) {
 
 	id, err := createPomodoroLog(user.id, data.TaskId)
 	if err != nil {
-		_ = render.Render(w, r, invalidRequestErr(err))
+		_ = render.Render(w, r, errInvalidRequest(err))
 		return
 	}
 
 	pomodoroLog, err := getPomodoroLogById(id)
 	if err != nil {
-		_ = render.Render(w, r, invalidRequestErr(err))
+		_ = render.Render(w, r, errInvalidRequest(err))
 		return
 	}
 
 	render.Status(r, http.StatusCreated)
 	if err := render.Render(w, r, newPomodoroLogResponse(pomodoroLog)); err != nil {
-		_ = render.Render(w, r, renderErr(err))
+		_ = render.Render(w, r, errRender(err))
 	}
 }

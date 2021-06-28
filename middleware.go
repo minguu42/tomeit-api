@@ -15,7 +15,7 @@ func UserCtx(next http.Handler) http.Handler {
 
 		token, err := verifyIDToken(ctx, firebaseApp, idToken)
 		if err != nil {
-			_ = render.Render(w, r, authenticateErr(err))
+			_ = render.Render(w, r, errAuthenticate(err))
 		}
 
 		var user User
@@ -24,7 +24,7 @@ func UserCtx(next http.Handler) http.Handler {
 		if err != nil {
 			user, err = createUser(hash(token.UID))
 			if err != nil {
-				_ = render.Render(w, r, unexpectedErr(err))
+				_ = render.Render(w, r, errUnexpectCondition(err))
 			}
 		}
 

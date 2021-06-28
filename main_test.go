@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -22,23 +23,24 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal("Open db failed:", err)
 	}
+	db.SetConnMaxLifetime(time.Second)
 
 	r := chi.NewRouter()
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Use(mockUserCtx)
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", PostTask)
-		r.Get("/", GetUndoneTasks)
-
-		r.Route("/done", func(r chi.Router) {
-			r.Get("/", GetDoneTasks)
-			r.Put("/{taskId}", PutTaskDone)
-		})
-	})
-	r.Route("/pomodoros", func(r chi.Router) {
-		r.Route("/logs", func(r chi.Router) {
-			r.Post("/", PostPomodoroLog)
-		})
+		//	r.Get("/", GetUndoneTasks)
+		//
+		//	r.Route("/done", func(r chi.Router) {
+		//		r.Get("/", GetDoneTasks)
+		//		r.Put("/{taskId}", PutTaskDone)
+		//	})
+		//})
+		//r.Route("/pomodoros", func(r chi.Router) {
+		//	r.Route("/logs", func(r chi.Router) {
+		//		r.Post("/", PostPomodoroLog)
+		//	})
 	})
 
 	ts := httptest.NewServer(r)

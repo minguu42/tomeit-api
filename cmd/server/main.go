@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/cors"
@@ -13,6 +14,20 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/go-sql-driver/mysql"
 )
+
+func init() {
+	render.Respond = func(w http.ResponseWriter, r *http.Request, v interface{}) {
+		if err, ok := v.(error); ok {
+
+			if _, ok := r.Context().Value(render.StatusCtxKey).(int); !ok {
+				w.WriteHeader(400)
+			}
+
+			log.Printf("logging err: %s\n", err.Error())
+		}
+		render.DefaultResponder(w, r, v)
+	}
+}
 
 func main() {
 	r := chi.NewRouter()
@@ -40,6 +55,11 @@ func main() {
 		r.Route("/done", func(r chi.Router) {
 			r.Get("/", tomeit.GetDoneTasks)
 			r.Put("/{taskId}", tomeit.PutTaskDone)
+		})
+	})
+	r.Route("/pomodoros", func(r chi.Router) {
+		r.Route("/logs", func(r chi.Router) {
+			r.Post("/", tomeit.PostPomodoroLog)
 		})
 	})
 

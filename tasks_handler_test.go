@@ -1,58 +1,14 @@
 package tomeit
 
 import (
-	"database/sql"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/render"
-
 	_ "github.com/go-sql-driver/mysql"
 )
-
-var (
-	client *http.Client
-	url    string
-)
-
-func TestMain(m *testing.M) {
-	r := chi.NewRouter()
-	r.Use(render.SetContentType(render.ContentTypeJSON))
-
-	var err error
-	db, err = sql.Open("mysql", "test:password@tcp(localhost:13306)/db_test?parseTime=true")
-	if err != nil {
-		log.Fatal("Open db failed:", err)
-	}
-
-	r.Use(mockUserCtx)
-	r.Route("/tasks", func(r chi.Router) {
-		r.Post("/", PostTask)
-		r.Get("/", GetUndoneTasks)
-
-		r.Route("/done", func(r chi.Router) {
-			r.Get("/", GetDoneTasks)
-			r.Put("/{taskId}", PutTaskDone)
-		})
-	})
-
-	ts := httptest.NewServer(r)
-	defer ts.Close()
-	url = ts.URL
-	client = &http.Client{}
-
-	m.Run()
-
-	if err := db.Close(); err != nil {
-		log.Fatal("Close db failed:", err)
-	}
-}
 
 func TestPostTask(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
@@ -109,98 +65,98 @@ func TestPostTask(t *testing.T) {
 	})
 }
 
-func TestGetUndoneTasks(t *testing.T) {
-	t.Run("OK", func(t *testing.T) {
-		req, err := http.NewRequest("GET", url+"/tasks", nil)
-		if err != nil {
-			t.Errorf("Create request failed: %v", err)
-		}
-		req.Header.Add("Authorization", "someIdToken")
+//func TestGetUndoneTasks(t *testing.T) {
+//	t.Run("OK", func(t *testing.T) {
+//		req, err := http.NewRequest("GET", url+"/tasks", nil)
+//		if err != nil {
+//			t.Errorf("Create request failed: %v", err)
+//		}
+//		req.Header.Add("Authorization", "someIdToken")
+//
+//		resp, err := client.Do(req)
+//		if err != nil {
+//			t.Errorf("Do request failed: %v", err)
+//		}
+//
+//		bytes, err := io.ReadAll(resp.Body)
+//		_ = resp.Body.Close()
+//		if err != nil {
+//			t.Errorf("Read response body failed: %v", err)
+//		}
+//
+//		var body tasksResponse
+//		if err := json.Unmarshal(bytes, &body); err != nil {
+//			t.Errorf("Unmarshal json failed: %v", err)
+//		}
+//
+//		if resp.StatusCode != 200 {
+//			t.Errorf("Status code should be 200, but %v", resp.StatusCode)
+//		}
+//	})
+//}
 
-		resp, err := client.Do(req)
-		if err != nil {
-			t.Errorf("Do request failed: %v", err)
-		}
+//func TestGetDoneTasks(t *testing.T) {
+//	t.Run("OK", func(t *testing.T) {
+//		req, err := http.NewRequest("GET", url+"/tasks/done", nil)
+//		if err != nil {
+//			t.Errorf("Create request failed: %v", err)
+//		}
+//		req.Header.Add("Authorization", "someIdToken")
+//
+//		resp, err := client.Do(req)
+//		if err != nil {
+//			t.Errorf("Do request failed: %v", err)
+//		}
+//
+//		bytes, err := io.ReadAll(resp.Body)
+//		_ = resp.Body.Close()
+//		if err != nil {
+//			t.Errorf("Read response body failed: %v", err)
+//		}
+//
+//		var body tasksResponse
+//		if err := json.Unmarshal(bytes, &body); err != nil {
+//			t.Errorf("Unmarshal json failed: %v", err)
+//		}
+//
+//		if resp.StatusCode != 200 {
+//			t.Errorf("Status code should be 200, but %v", resp.StatusCode)
+//		}
+//	})
+//}
 
-		bytes, err := io.ReadAll(resp.Body)
-		_ = resp.Body.Close()
-		if err != nil {
-			t.Errorf("Read response body failed: %v", err)
-		}
-
-		var body tasksResponse
-		if err := json.Unmarshal(bytes, &body); err != nil {
-			t.Errorf("Unmarshal json failed: %v", err)
-		}
-
-		if resp.StatusCode != 200 {
-			t.Errorf("Status code should be 200, but %v", resp.StatusCode)
-		}
-	})
-}
-
-func TestGetDoneTasks(t *testing.T) {
-	t.Run("OK", func(t *testing.T) {
-		req, err := http.NewRequest("GET", url+"/tasks/done", nil)
-		if err != nil {
-			t.Errorf("Create request failed: %v", err)
-		}
-		req.Header.Add("Authorization", "someIdToken")
-
-		resp, err := client.Do(req)
-		if err != nil {
-			t.Errorf("Do request failed: %v", err)
-		}
-
-		bytes, err := io.ReadAll(resp.Body)
-		_ = resp.Body.Close()
-		if err != nil {
-			t.Errorf("Read response body failed: %v", err)
-		}
-
-		var body tasksResponse
-		if err := json.Unmarshal(bytes, &body); err != nil {
-			t.Errorf("Unmarshal json failed: %v", err)
-		}
-
-		if resp.StatusCode != 200 {
-			t.Errorf("Status code should be 200, but %v", resp.StatusCode)
-		}
-	})
-}
-
-func TestPutTaskDone(t *testing.T) {
-	t.Run("OK", func(t *testing.T) {
-		req, err := http.NewRequest("PUT", url+"/tasks/done/1", nil)
-		if err != nil {
-			t.Errorf("Create request failed: %v", err)
-		}
-		req.Header.Add("Authorization", "someIdToken")
-
-		resp, err := client.Do(req)
-		if err != nil {
-			t.Errorf("Do request failed: %v", err)
-		}
-
-		bytes, err := io.ReadAll(resp.Body)
-		_ = resp.Body.Close()
-		if err != nil {
-			t.Errorf("Read response body failed: %v", err)
-		}
-
-		var body taskResponse
-		if err := json.Unmarshal(bytes, &body); err != nil {
-			t.Errorf("Unmarshal json failed: %v", err)
-		}
-
-		if resp.StatusCode != 200 {
-			t.Errorf("Status code should be 200, but %v", err)
-		}
-		if body.Id != 1 {
-			t.Errorf("Id should be 1, but %v", body.Id)
-		}
-		if body.IsDone != true {
-			t.Errorf("IsDone should be true, but %v", body.IsDone)
-		}
-	})
-}
+//func TestPutTaskDone(t *testing.T) {
+//	t.Run("OK", func(t *testing.T) {
+//		req, err := http.NewRequest("PUT", url+"/tasks/done/1", nil)
+//		if err != nil {
+//			t.Errorf("Create request failed: %v", err)
+//		}
+//		req.Header.Add("Authorization", "someIdToken")
+//
+//		resp, err := client.Do(req)
+//		if err != nil {
+//			t.Errorf("Do request failed: %v", err)
+//		}
+//
+//		bytes, err := io.ReadAll(resp.Body)
+//		_ = resp.Body.Close()
+//		if err != nil {
+//			t.Errorf("Read response body failed: %v", err)
+//		}
+//
+//		var body taskResponse
+//		if err := json.Unmarshal(bytes, &body); err != nil {
+//			t.Errorf("Unmarshal json failed: %v", err)
+//		}
+//
+//		if resp.StatusCode != 200 {
+//			t.Errorf("Status code should be 200, but %v", err)
+//		}
+//		if body.Id != 1 {
+//			t.Errorf("Id should be 1, but %v", body.Id)
+//		}
+//		if body.IsDone != true {
+//			t.Errorf("IsDone should be true, but %v", body.IsDone)
+//		}
+//	})
+//}

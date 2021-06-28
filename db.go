@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"time"
 )
 
 var db *sql.DB
@@ -14,6 +15,7 @@ func OpenDb() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	db.SetConnMaxLifetime(time.Second)
 }
 
 func CloseDb() {

@@ -2,10 +2,11 @@ package tomeit
 
 import (
 	"errors"
-	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/go-chi/chi/v5"
 
 	"github.com/go-chi/render"
 )
@@ -27,7 +28,7 @@ func (t *taskRequest) Bind(r *http.Request) error {
 }
 
 type taskResponse struct {
-	Id            int64    `json:"id"`
+	Id            int64  `json:"id"`
 	Name          string `json:"name"`
 	Priority      int    `json:"priority"`
 	Deadline      string `json:"deadline"`
@@ -35,10 +36,6 @@ type taskResponse struct {
 	PomodoroCount int    `json:"pomodoroCount"`
 	CreatedAt     string `json:"createdAt"`
 	UpdatedAt     string `json:"updatedAt"`
-}
-
-type tasksResponse struct {
-	Tasks []*taskResponse `json:"tasks"`
 }
 
 func newTaskResponse(task *Task) *taskResponse {
@@ -55,6 +52,14 @@ func newTaskResponse(task *Task) *taskResponse {
 	return &resp
 }
 
+func (t taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+type tasksResponse struct {
+	Tasks []*taskResponse `json:"tasks"`
+}
+
 func newTasksResponse(tasks []*Task) *tasksResponse {
 	var ts []*taskResponse
 	for _, t := range tasks {
@@ -63,10 +68,6 @@ func newTasksResponse(tasks []*Task) *tasksResponse {
 	var resp tasksResponse
 	resp.Tasks = ts
 	return &resp
-}
-
-func (t taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	return nil
 }
 
 func (ts tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
@@ -86,6 +87,7 @@ func PostTask(w http.ResponseWriter, r *http.Request) {
 		_ = render.Render(w, r, invalidRequestErr(err))
 		return
 	}
+
 	createdTaskId, err := createTask(user.id, data.Name, data.Priority, deadline)
 	if err != nil {
 		_ = render.Render(w, r, invalidRequestErr(err))

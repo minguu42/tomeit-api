@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
     id              INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    digest_uid      VARCHAR(256) NOT NULL
+    digest_uid      CHAR(64) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tasks (
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS pomodoroLogs (
+CREATE TABLE IF NOT EXISTS pomodoro_logs (
     id         INT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
     user_id    INT       NOT NULL,
     task_id    INT       NOT NULL,

@@ -41,6 +41,11 @@ func TestMain(m *testing.M) {
 			r.Put("/{taskId}", PutTaskDone)
 		})
 	})
+	r.Route("/pomodoros", func(r chi.Router) {
+		r.Route("/logs", func(r chi.Router) {
+			r.Post("/", PostPomodoroLog)
+		})
+	})
 
 	ts := httptest.NewServer(r)
 	defer ts.Close()

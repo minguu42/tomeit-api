@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/cors"
 
 	"github.com/go-chi/render"
-	"github.com/minguu42/tomeit-api"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -42,25 +41,8 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	tomeit.OpenDb()
-	defer tomeit.CloseDb()
-
-	tomeit.InitFirebaseApp()
-
-	r.Use(tomeit.UserCtx)
-	r.Route("/tasks", func(r chi.Router) {
-		r.Post("/", tomeit.PostTask)
-		r.Get("/", tomeit.GetUndoneTasks)
-
-		r.Route("/done", func(r chi.Router) {
-			r.Get("/", tomeit.GetDoneTasks)
-			r.Put("/{taskId}", tomeit.PutTaskDone)
-		})
-	})
-	r.Route("/pomodoros", func(r chi.Router) {
-		r.Route("/logs", func(r chi.Router) {
-			r.Post("/", tomeit.PostPomodoroLog)
-		})
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("Hello!"))
 	})
 
 	if err := http.ListenAndServe(":8080", r); err != nil {

@@ -17,12 +17,15 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	firebaseApp := &firebaseAppMock{}
+
 	db := OpenDB("mysql", "test:password@tcp(localhost:13306)/db_test?parseTime=true")
 	defer CloseDB(db)
 
 	r := chi.NewRouter()
 
 	r.Use(render.SetContentType(render.ContentTypeJSON))
+	r.Use(UserCtx(db, firebaseApp))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("Hello!"))

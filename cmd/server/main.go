@@ -17,6 +17,8 @@ import (
 )
 
 func main() {
+	firebaseApp := tomeit.InitFirebaseApp()
+
 	db := tomeit.OpenDB("mysql", os.Getenv("DATABASE_URL"))
 	defer tomeit.CloseDB(db)
 
@@ -32,6 +34,7 @@ func main() {
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 	}))
+	r.Use(tomeit.UserCtx(db, firebaseApp))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("Hello!"))

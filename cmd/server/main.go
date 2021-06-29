@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+	"os"
+
+	"github.com/minguu42/tomeit-api"
 
 	"github.com/go-chi/cors"
 
@@ -14,24 +16,14 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func init() {
-	render.Respond = func(w http.ResponseWriter, r *http.Request, v interface{}) {
-		if err, ok := v.(error); ok {
-
-			if _, ok := r.Context().Value(render.StatusCtxKey).(int); !ok {
-				w.WriteHeader(400)
-			}
-
-			log.Printf("logging err: %s\n", err.Error())
-		}
-		render.DefaultResponder(w, r, v)
-	}
-}
-
 func main() {
+	db := tomeit.OpenDB("mysql", os.Getenv("DATABASE_URL"))
+	defer tomeit.CloseDB(db)
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "https://tomeit.vercel.app"}, //TODO: 開発後は http://localhost:3000 を除外する.

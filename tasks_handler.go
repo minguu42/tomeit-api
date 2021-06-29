@@ -36,10 +36,6 @@ type taskResponse struct {
 	UpdatedAt     string `json:"updatedAt"`
 }
 
-func (t *taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
 func newTaskResponse(t *task) *taskResponse {
 	r := taskResponse{
 		ID:            t.id,
@@ -52,6 +48,26 @@ func newTaskResponse(t *task) *taskResponse {
 		UpdatedAt:     t.updatedAt.Format(time.RFC3339),
 	}
 	return &r
+}
+
+func (t *taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+type tasksResponse struct {
+	Tasks []*taskResponse `json:"tasks"`
+}
+
+func newTasksResponse(tasks []*task) *tasksResponse {
+	var ts []*taskResponse
+	for _, t := range tasks {
+		ts = append(ts, newTaskResponse(t))
+	}
+	return &tasksResponse{Tasks: ts}
+}
+
+func (ts *tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
 }
 
 func PostTask(db dbInterface) http.HandlerFunc {
@@ -88,6 +104,25 @@ func PostTask(db dbInterface) http.HandlerFunc {
 
 		render.Status(r, http.StatusCreated)
 		if err = render.Render(w, r, newTaskResponse(task)); err != nil {
+			log.Println("render failed:", err)
+			_ = render.Render(w, r, errRender(err))
+			return
+		}
+	}
+}
+
+func GetTasks(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := r.Context().Value("user").(*user)
+
+		tasks, err := db.getTasksByUser(user)
+		if err != nil {
+			log.Println("getTasksByUser failed:", err)
+			_ = render.Render(w, r, errNotFound())
+			return
+		}
+
+		if err := render.Render(w, r, newTasksResponse(tasks)); err != nil {
 			log.Println("render failed:", err)
 			_ = render.Render(w, r, errRender(err))
 			return

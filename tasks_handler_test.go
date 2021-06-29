@@ -10,7 +10,7 @@ import (
 
 func TestPostTask(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		reqBody := strings.NewReader(`{"name": "タスク1", "priority": 2, "deadline": "2021-06-30"}`)
+		reqBody := strings.NewReader(`{"name": "作成したタスク", "priority": 2, "deadline": "2021-06-30"}`)
 		req, err := http.NewRequest("POST", testUrl+"/tasks", reqBody)
 		if err != nil {
 			t.Error("Create request failed:", err)
@@ -40,8 +40,8 @@ func TestPostTask(t *testing.T) {
 		if body.ID <= 0 {
 			t.Error("Id should be positive number, but", body.ID)
 		}
-		if body.Name != "タスク1" {
-			t.Error("Name should be タスク1, but", body.Name)
+		if body.Name != "作成したタスク" {
+			t.Error("Name should be 作成したタスク, but", body.Name)
 		}
 		if body.Priority != 2 {
 			t.Error("Priority should be 2, but", body.Priority)
@@ -60,6 +60,41 @@ func TestPostTask(t *testing.T) {
 		}
 		if body.UpdatedAt == "" {
 			t.Error("UpdatedAt does not exist")
+		}
+	})
+}
+
+func TestGetTasks(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		req, err := http.NewRequest("GET", testUrl+"/tasks", nil)
+		if err != nil {
+			t.Error("Create request failed:", err)
+		}
+
+		resp, err := testClient.Do(req)
+		if err != nil {
+			t.Error("Do request failed:", err)
+		}
+
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Error("Read response failed:", err)
+		}
+		if err := resp.Body.Close(); err != nil {
+			t.Error("Close response failed:", err)
+		}
+
+		var body tasksResponse
+		if err := json.Unmarshal(bytes, &body); err != nil {
+			t.Error("Unmarshal json failed:", err)
+		}
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+
+		if len(body.Tasks) != 3 {
+			t.Error("Tasks should have three task, but", len(body.Tasks))
 		}
 	})
 }

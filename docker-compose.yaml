@@ -43,7 +43,7 @@ services:
       - 13306:3306
     volumes:
       - data-test:/var/lib/mysql
-      - ./build/setup.sql:/docker-entrypoint-initdb.d/setup_test.sql
+      - ./build/setup_test.sql:/docker-entrypoint-initdb.d/setup_test.sql
   docs:
     image: swaggerapi/swagger-ui
     container_name: tomeit-api-docs

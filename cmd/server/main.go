@@ -38,6 +38,7 @@ func main() {
 
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", tomeit.PostTask(db))
+		r.Get("/", tomeit.GetTasks(db))
 	})
 
 	if err := http.ListenAndServe(":8080", r); err != nil {

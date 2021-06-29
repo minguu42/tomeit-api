@@ -1,7 +1,6 @@
 package tomeit
 
 import (
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -27,8 +26,8 @@ func TestMain(m *testing.M) {
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Use(UserCtx(db, firebaseApp))
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("Hello!"))
+	r.Route("/tasks", func(r chi.Router) {
+		r.Post("/", PostTask(db))
 	})
 
 	ts := httptest.NewServer(r)
@@ -38,33 +37,4 @@ func TestMain(m *testing.M) {
 	testClient = &http.Client{}
 
 	m.Run()
-}
-
-func TestExample(t *testing.T) {
-	t.Run("OK", func(t *testing.T) {
-		req, err := http.NewRequest("GET", testUrl+"/", nil)
-		if err != nil {
-			t.Error("Create request failed:", err)
-		}
-
-		resp, err := testClient.Do(req)
-		if err != nil {
-			t.Error("Do request failed:", err)
-		}
-
-		bytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			t.Error("Read response failed:", err)
-		}
-		if err := resp.Body.Close(); err != nil {
-			t.Error("Close response body failed:", err)
-		}
-
-		if resp.StatusCode != 200 {
-			t.Error("Status code should be 201, but", resp.StatusCode)
-		}
-		if string(bytes) != "Hello!" {
-			t.Error("Response Body should be Hello!, but", string(bytes))
-		}
-	})
 }

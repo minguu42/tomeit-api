@@ -36,8 +36,8 @@ func main() {
 	}))
 	r.Use(tomeit.UserCtx(db, firebaseApp))
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("Hello!"))
+	r.Route("/tasks", func(r chi.Router) {
+		r.Post("/", tomeit.PostTask(db))
 	})
 
 	if err := http.ListenAndServe(":8080", r); err != nil {

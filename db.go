@@ -3,11 +3,14 @@ package tomeit
 import (
 	"database/sql"
 	"log"
+	"time"
 )
 
 type dbInterface interface {
 	createUser(digestUID string) (*user, error)
 	getUserByDigestUID(digestUID string) (*user, error)
+	createTask(userID int64, name string, priority int, deadline time.Time) (int64, error)
+	getTaskByID(id int64) (*task, error)
 }
 
 type DB struct {

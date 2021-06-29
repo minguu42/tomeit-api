@@ -14,13 +14,13 @@ type DB struct {
 func OpenDB(driverName, databaseUrl string) *sql.DB {
 	db, err := sql.Open(driverName, databaseUrl)
 	if err != nil {
-		log.Fatalf("Open db failed: %v\n", err)
+		log.Fatalln("Open db failed:", err)
 	}
 	return db
 }
 
 func CloseDB(db *sql.DB) {
 	if err := db.Close(); err != nil {
-		log.Fatalf("Close db failed: %v\n", err)
+		log.Fatalln("Close db failed:", err)
 	}
 }

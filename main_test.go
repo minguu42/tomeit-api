@@ -41,27 +41,27 @@ func TestExample(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		req, err := http.NewRequest("GET", testUrl+"/", nil)
 		if err != nil {
-			t.Errorf("Create request failed: %v", err)
+			t.Error("Create request failed:", err)
 		}
 
 		resp, err := testClient.Do(req)
 		if err != nil {
-			t.Errorf("Do request failed: %v", err)
+			t.Error("Do request failed:", err)
 		}
 
 		bytes, err := io.ReadAll(resp.Body)
 		if err != nil {
-			t.Errorf("Read response failed: %v", err)
+			t.Error("Read response failed:", err)
 		}
 		if err := resp.Body.Close(); err != nil {
-			t.Errorf("Close response body failed: %v", err)
+			t.Error("Close response body failed:", err)
 		}
 
 		if resp.StatusCode != 200 {
-			t.Errorf("Status code should be 201, but %v", resp.StatusCode)
+			t.Error("Status code should be 201, but", resp.StatusCode)
 		}
 		if string(bytes) != "Hello!" {
-			t.Errorf("Response Body should be Hello!, but %v", string(bytes))
+			t.Error("Response Body should be Hello!, but", string(bytes))
 		}
 	})
 }

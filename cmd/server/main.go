@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -38,6 +38,6 @@ func main() {
 	})
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
-		fmt.Println("ListenAndServe error:", err)
+		log.Fatalln("ListenAndServe failed:", err)
 	}
 }

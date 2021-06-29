@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func (db DB) createTask(userID int64, name string, priority int, deadline time.Time) (int64, error) {
+func (db *DB) createTask(userID int64, name string, priority int, deadline time.Time) (int64, error) {
 	const q = `INSERT INTO tasks (user_id, name, priority, deadline) VALUES (?, ?, ?, ?)`
 
 	r, err := db.Exec(q, userID, name, priority, deadline.Format("2006-01-02"))
@@ -21,7 +21,7 @@ func (db DB) createTask(userID int64, name string, priority int, deadline time.T
 	return id, nil
 }
 
-func (db DB) getTaskByID(id int64) (*task, error) {
+func (db *DB) getTaskByID(id int64) (*task, error) {
 	const q = `SELECT name, priority, deadline, is_done, created_at, updated_at FROM tasks WHERE id = ?`
 
 	t := task{id: id}
@@ -33,10 +33,34 @@ func (db DB) getTaskByID(id int64) (*task, error) {
 	return &t, nil
 }
 
-func (db DB) getTasksByUser(user *user) ([]*task, error) {
+func (db *DB) getTasksByUser(user *user) ([]*task, error) {
 	const q = `
 SELECT id, name, priority, deadline, is_done, created_at, updated_at FROM tasks
 WHERE user_id = ?
+ORDER BY updated_at
+LIMIT 30
+`
+	var tasks []*task
+	rows, err := db.Query(q, user.id)
+	if err != nil {
+		return nil, fmt.Errorf("query failed: %w", err)
+	}
+
+	for rows.Next() {
+		var t task
+		if err := rows.Scan(&t.id, &t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
+			return nil, fmt.Errorf("scan failed: %w", err)
+		}
+		tasks = append(tasks, &t)
+	}
+
+	return tasks, nil
+}
+
+func (db *DB) getDoneTasksByUser(user *user) ([]*task, error) {
+	const q = `
+SELECT id, name, priority, deadline, is_done, created_at, updated_at FROM tasks
+WHERE user_id = ? AND is_done = TRUE
 ORDER BY updated_at
 LIMIT 30
 `

@@ -129,3 +129,22 @@ func GetTasks(db dbInterface) http.HandlerFunc {
 		}
 	}
 }
+
+func GetTasksDone(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := r.Context().Value("user").(*user)
+
+		tasks, err := db.getDoneTasksByUser(user)
+		if err != nil {
+			log.Println("getTasksByUser failed:", err)
+			_ = render.Render(w, r, errNotFound())
+			return
+		}
+
+		if err := render.Render(w, r, newTasksResponse(tasks)); err != nil {
+			log.Println("render failed:", err)
+			_ = render.Render(w, r, errRender(err))
+			return
+		}
+	}
+}

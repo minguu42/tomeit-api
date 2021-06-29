@@ -25,5 +25,7 @@ CREATE TABLE IF NOT EXISTS pomodoro_logs (
 );
 
 INSERT INTO users (digest_uid) VALUES ('a2c4ba85c41f186283948b1a54efacea04cb2d3f54a88d5826a7e6a917b28c5a');
-INSERT INTO tasks (user_id, name, priority, deadline) VALUES (1, 'タスク1', 0, '2021-06-30'),
-                                                             (1, 'タスク2', 1, '2021-07-01');
+INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク1', 0, '2021-06-30', false),
+                                                                      (1, 'タスク2', 1, '2021-07-01', false),
+                                                                      (1, '完了済みタスク1', 0, '2021-06-01', true),
+                                                                      (1, '完了済みタスク2', 2, '2021-06-10', true);

@@ -93,8 +93,43 @@ func TestGetTasks(t *testing.T) {
 			t.Error("Status code should be 200, but", resp.StatusCode)
 		}
 
-		if len(body.Tasks) != 3 {
-			t.Error("Tasks should have three task, but", len(body.Tasks))
+		if len(body.Tasks) != 5 {
+			t.Error("Tasks should have five task, but", len(body.Tasks))
+		}
+	})
+}
+
+func TestGetTasksDone(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		req, err := http.NewRequest("GET", testUrl+"/tasks/done", nil)
+		if err != nil {
+			t.Error("Create request failed:", err)
+		}
+
+		resp, err := testClient.Do(req)
+		if err != nil {
+			t.Error("Do request failed:", err)
+		}
+
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Error("Read response failed:", err)
+		}
+		if err := resp.Body.Close(); err != nil {
+			t.Error("Close response failed:", err)
+		}
+
+		var body tasksResponse
+		if err := json.Unmarshal(bytes, &body); err != nil {
+			t.Error("Unmarshal json failed:", err)
+		}
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+
+		if len(body.Tasks) != 2 {
+			t.Error("Tasks should have two task, but", len(body.Tasks))
 		}
 	})
 }

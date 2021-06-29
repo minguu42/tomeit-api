@@ -12,6 +12,7 @@ type dbInterface interface {
 	createTask(userID int64, name string, priority int, deadline time.Time) (int64, error)
 	getTaskByID(id int64) (*task, error)
 	getTasksByUser(user *user) ([]*task, error)
+	getDoneTasksByUser(user *user) ([]*task, error)
 }
 
 type DB struct {

@@ -29,6 +29,10 @@ func TestMain(m *testing.M) {
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", PostTask(db))
 		r.Get("/", GetTasks(db))
+
+		r.Route("/done", func(r chi.Router) {
+			r.Get("/", GetTasksDone(db))
+		})
 	})
 
 	ts := httptest.NewServer(r)

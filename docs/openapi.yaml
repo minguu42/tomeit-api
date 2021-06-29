@@ -50,12 +50,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Task"
     get:
-      summary: 未完了タスク一覧取得 API
+      summary: タスク一覧取得 API
       tags:
         - tasks
       description: |
-        未完了のタスク一覧を取得する.
-        作られた順でタスクを最大20個取得する.
+        タスク一覧を取得する.
+        更新順で最大30個取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
       responses:
@@ -77,7 +77,7 @@ paths:
         - tasks
       description: |
         完了済みタスクを取得する.
-        新しい順から1週間前までのタスクを最大20個取得する.
+        更新順で最大30個取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
       responses:
@@ -139,6 +139,7 @@ paths:
         - pomodoros
       description: |
         ポモドーロログを一覧で取得する.
+        更新順で最大30件まで取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
       responses:

@@ -43,7 +43,7 @@ func (db *DB) getTasksByUser(user *user) ([]*task, error) {
 	const q = `
 SELECT id, name, priority, deadline, is_done, created_at, updated_at FROM tasks
 WHERE user_id = ?
-ORDER BY updated_at
+ORDER BY updated_at DESC
 LIMIT 30
 `
 	var ts []*task
@@ -69,7 +69,7 @@ func (db *DB) getDoneTasksByUser(user *user) ([]*task, error) {
 	const q = `
 SELECT id, name, priority, deadline, is_done, created_at, updated_at FROM tasks
 WHERE user_id = ? AND is_done = TRUE
-ORDER BY updated_at
+ORDER BY updated_at DESC
 LIMIT 30
 `
 	var tasks []*task

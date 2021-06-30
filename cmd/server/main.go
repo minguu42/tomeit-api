@@ -45,6 +45,11 @@ func main() {
 			r.Put("/{taskID}", tomeit.PutTaskDone(db))
 		})
 	})
+	r.Route("/pomodoros", func(r chi.Router) {
+		r.Route("/logs", func(r chi.Router) {
+			r.Post("/", tomeit.PostPomodoroLog(db))
+		})
+	})
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatalln("ListenAndServe failed:", err)

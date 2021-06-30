@@ -19,7 +19,7 @@ type taskRequest struct {
 
 func (t *taskRequest) Bind(r *http.Request) error {
 	if t.Name == "" {
-		return errors.New("missing required name fields")
+		return errors.New("missing required name field")
 	}
 	if t.Deadline == "" {
 		t.Deadline = "0001-01-01"

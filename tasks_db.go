@@ -33,7 +33,7 @@ WHERE T.id = ?
 	t := task{id: id, user: &u}
 
 	if err := db.QueryRow(q, id).Scan(&t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt, &u.id, &u.digestUID); err != nil {
-		return nil, fmt.Errorf("queryRow failed: %w", err)
+		return nil, fmt.Errorf("scan failed: %w", err)
 	}
 
 	return &t, nil

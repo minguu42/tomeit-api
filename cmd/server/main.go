@@ -48,6 +48,7 @@ func main() {
 	r.Route("/pomodoros", func(r chi.Router) {
 		r.Route("/logs", func(r chi.Router) {
 			r.Post("/", tomeit.PostPomodoroLog(db))
+			r.Get("/", tomeit.GetPomodoroLogs(db))
 		})
 	})
 

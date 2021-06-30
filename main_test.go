@@ -38,6 +38,7 @@ func TestMain(m *testing.M) {
 	r.Route("/pomodoros", func(r chi.Router) {
 		r.Route("/logs", func(r chi.Router) {
 			r.Post("/", PostPomodoroLog(db))
+			r.Get("/", GetPomodoroLogs(db))
 		})
 	})
 

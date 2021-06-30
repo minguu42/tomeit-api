@@ -46,7 +46,7 @@ WHERE user_id = ?
 ORDER BY updated_at
 LIMIT 30
 `
-	var tasks []*task
+	var ts []*task
 	rows, err := db.Query(q, user.id)
 	if err != nil {
 		return nil, fmt.Errorf("query failed: %w", err)
@@ -59,10 +59,10 @@ LIMIT 30
 		if err := rows.Scan(&t.id, &t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
-		tasks = append(tasks, &t)
+		ts = append(ts, &t)
 	}
 
-	return tasks, nil
+	return ts, nil
 }
 
 func (db *DB) getDoneTasksByUser(user *user) ([]*task, error) {

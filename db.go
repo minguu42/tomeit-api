@@ -16,6 +16,7 @@ type dbInterface interface {
 	doneTask(taskID int64) error
 	createPomodoroLog(userID, taskID int64) (int64, error)
 	getPomodoroLogByID(id int64) (*pomodoroLog, error)
+	getPomodoroLogsByUser(user *user) ([]*pomodoroLog, error)
 }
 
 type DB struct {

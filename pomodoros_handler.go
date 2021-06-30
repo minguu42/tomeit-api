@@ -39,6 +39,22 @@ func (p *pomodoroLogResponse) Render(w http.ResponseWriter, r *http.Request) err
 	return nil
 }
 
+type pomodoroLogsResponse struct {
+	PomodoroLogs []*pomodoroLogResponse `json:"pomodoroLogs"`
+}
+
+func newPomodoroLogsResponse(pomodoroLogs []*pomodoroLog) *pomodoroLogsResponse {
+	var ps []*pomodoroLogResponse
+	for _, p := range pomodoroLogs {
+		ps = append(ps, newPomodoroLogResponse(p))
+	}
+	return &pomodoroLogsResponse{PomodoroLogs: ps}
+}
+
+func (ps *pomodoroLogsResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
 func PostPomodoroLog(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := &pomodoroLogRequest{}
@@ -66,6 +82,25 @@ func PostPomodoroLog(db dbInterface) http.HandlerFunc {
 
 		render.Status(r, http.StatusCreated)
 		if err = render.Render(w, r, newPomodoroLogResponse(pomodoroLog)); err != nil {
+			log.Println("render failed:", err)
+			_ = render.Render(w, r, errRender(err))
+			return
+		}
+	}
+}
+
+func GetPomodoroLogs(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := r.Context().Value("user").(*user)
+
+		pomodoroLogs, err := db.getPomodoroLogsByUser(user)
+		if err != nil {
+			log.Println("getPomodoroLogsByUser failed:", err)
+			_ = render.Render(w, r, errNotFound())
+			return
+		}
+
+		if err := render.Render(w, r, newPomodoroLogsResponse(pomodoroLogs)); err != nil {
 			log.Println("render failed:", err)
 			_ = render.Render(w, r, errRender(err))
 			return

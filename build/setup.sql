@@ -1,3 +1,5 @@
+SET CHARACTER SET UTF8;
+
 CREATE TABLE IF NOT EXISTS users (
     id              INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
     digest_uid      CHAR(64) NOT NULL

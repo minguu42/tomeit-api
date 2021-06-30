@@ -28,6 +28,23 @@ func OpenDB(driverName, databaseUrl string) *DB {
 	if err != nil {
 		log.Fatalln("Open db failed:", err)
 	}
+
+	isDBReady := false
+	failureTimes := 0
+	for !isDBReady {
+		err := db.Ping()
+		if err == nil {
+			isDBReady = true
+		} else {
+			time.Sleep(time.Second * 15)
+			failureTimes += 1
+		}
+
+		if failureTimes >= 3 {
+			log.Fatalln("Ping db failed:", err)
+		}
+	}
+
 	return &DB{db}
 }
 

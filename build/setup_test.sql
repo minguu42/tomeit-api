@@ -27,8 +27,13 @@ CREATE TABLE IF NOT EXISTS pomodoro_logs (
     FOREIGN KEY (task_id) REFERENCES tasks(id)
 );
 
+-- テストで利用するユーザ
 INSERT INTO users (digest_uid) VALUES ('a2c4ba85c41f186283948b1a54efacea04cb2d3f54a88d5826a7e6a917b28c5a');
-INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク1', 0, '2021-06-30', false),
-                                                                      (1, 'タスク2', 1, '2021-07-01', false),
-                                                                      (1, '完了済みタスク1', 0, '2021-06-01', true),
-                                                                      (1, '完了済みタスク2', 2, '2021-06-10', true);
+/*
+依存関係
+TestGetTasks -> タスク1, タスク2, タスク3, タスク4, TestPostTask
+*/
+INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク1', 0, '2021-01-01', false),
+                                                                      (1, 'タスク2', 1, '2021-01-02', false),
+                                                                      (1, 'タスク3', 2, '2021-01-03', true),
+                                                                      (1, 'タスク4', 3, '2021-01-04', true);

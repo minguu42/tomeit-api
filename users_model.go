@@ -8,6 +8,7 @@ import (
 type user struct {
 	id        int64
 	digestUID string
+	restCount int
 }
 
 func hash(token string) string {

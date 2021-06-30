@@ -50,6 +50,7 @@ func main() {
 			r.Post("/", tomeit.PostPomodoroLog(db))
 			r.Get("/", tomeit.GetPomodoroLogs(db))
 		})
+		r.Get("/rest/count", tomeit.GetRestCount)
 	})
 
 	if err := http.ListenAndServe(":8080", r); err != nil {

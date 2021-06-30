@@ -18,6 +18,7 @@ func (db *DB) createUser(digestUID string) (*user, error) {
 	u := user{
 		id:        id,
 		digestUID: digestUID,
+		restCount: 4,
 	}
 	return &u, nil
 }
@@ -26,7 +27,7 @@ func (db *DB) getUserByDigestUID(digestUID string) (*user, error) {
 	const q = `SELECT * FROM users WHERE digest_uid = ?`
 
 	var u user
-	if err := db.QueryRow(q, digestUID).Scan(&u.id, &u.digestUID); err != nil {
+	if err := db.QueryRow(q, digestUID).Scan(&u.id, &u.digestUID, &u.restCount); err != nil {
 		return nil, fmt.Errorf("queryRow failed: %w", err)
 	}
 

@@ -100,7 +100,42 @@ func TestGetPomodoroLogs(t *testing.T) {
 		}
 
 		if len(body.PomodoroLogs) != 1 {
-			t.Error("Tasks should have five task, but", len(body.PomodoroLogs))
+			t.Error("PomodoroLogs should have one pomodoroLog, but", len(body.PomodoroLogs))
+		}
+	})
+}
+
+func TestGetRestCount(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		req, err := http.NewRequest("GET", testUrl+"/pomodoros/rest/count", nil)
+		if err != nil {
+			t.Error("Create request failed:", err)
+		}
+
+		resp, err := testClient.Do(req)
+		if err != nil {
+			t.Error("Do request failed:", err)
+		}
+
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Error("Read response failed:", err)
+		}
+		if err := resp.Body.Close(); err != nil {
+			t.Error("Close response failed:", err)
+		}
+
+		var body restCountResponse
+		if err := json.Unmarshal(bytes, &body); err != nil {
+			t.Error("Unmarshal json failed:", err)
+		}
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+
+		if body.CountToNextRest != 4 {
+			t.Error("CountToNextRest should be 4, but", body.CountToNextRest)
 		}
 	})
 }

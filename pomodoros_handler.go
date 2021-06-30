@@ -107,3 +107,21 @@ func GetPomodoroLogs(db dbInterface) http.HandlerFunc {
 		}
 	}
 }
+
+type restCountResponse struct {
+	CountToNextRest int `json:"countToNextRest"`
+}
+
+func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func GetRestCount(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(*user)
+
+	if err := render.Render(w, r, &restCountResponse{CountToNextRest: user.restCount}); err != nil {
+		log.Println("render failed:", err)
+		_ = render.Render(w, r, errRender(err))
+		return
+	}
+}

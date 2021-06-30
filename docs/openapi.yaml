@@ -89,16 +89,16 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Task"
-  /tasks/done/{taskId}:
+  /tasks/done/{taskID}:
     put:
       summary: タスク完了 API
       tags:
         - tasks
       description: |
         タスクを完了する.
-        taskId で一意のタスクを指定する.
+        taskID で一意のタスクを指定する.
       parameters:
-        - $ref: "#/components/parameters/taskId"
+        - $ref: "#/components/parameters/taskID"
         - $ref: "#/components/parameters/idToken"
       responses:
         "200":
@@ -123,7 +123,7 @@ paths:
             schema:
               type: object
               properties:
-                taskId:
+                taskID:
                   type: integer
                   example: 1
       responses:
@@ -184,8 +184,8 @@ components:
       required: true
       schema:
         type: string
-    taskId:
-      name: taskId
+    taskID:
+      name: taskID
       description: タスク番号
       in: path
       required: true

@@ -13,6 +13,7 @@ type dbInterface interface {
 	getTaskByID(id int64) (*task, error)
 	getTasksByUser(user *user) ([]*task, error)
 	getDoneTasksByUser(user *user) ([]*task, error)
+	doneTask(taskID int64) error
 }
 
 type DB struct {

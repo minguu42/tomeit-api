@@ -42,6 +42,7 @@ func main() {
 
 		r.Route("/done", func(r chi.Router) {
 			r.Get("/", tomeit.GetTasksDone(db))
+			r.Put("/{taskID}", tomeit.PutTaskDone(db))
 		})
 	})
 

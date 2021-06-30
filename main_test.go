@@ -32,6 +32,7 @@ func TestMain(m *testing.M) {
 
 		r.Route("/done", func(r chi.Router) {
 			r.Get("/", GetTasksDone(db))
+			r.Put("/{taskID}", PutTaskDone(db))
 		})
 	})
 

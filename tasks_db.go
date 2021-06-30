@@ -22,11 +22,17 @@ func (db *DB) createTask(userID int64, name string, priority int, deadline time.
 }
 
 func (db *DB) getTaskByID(id int64) (*task, error) {
-	const q = `SELECT name, priority, deadline, is_done, created_at, updated_at FROM tasks WHERE id = ?`
+	const q = `
+SELECT T.name, T.priority, T.deadline, T.is_done, T.created_at, T.updated_at, U.id, U.digest_uid 
+FROM tasks AS T
+JOIN users AS U ON T.user_id = U.id
+WHERE T.id = ?
+`
 
-	t := task{id: id}
+	var u user
+	t := task{id: id, user: &u}
 
-	if err := db.QueryRow(q, id).Scan(&t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
+	if err := db.QueryRow(q, id).Scan(&t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt, &u.id, &u.digestUID); err != nil {
 		return nil, fmt.Errorf("queryRow failed: %w", err)
 	}
 
@@ -47,7 +53,9 @@ LIMIT 30
 	}
 
 	for rows.Next() {
-		var t task
+		t := task{
+			user: user,
+		}
 		if err := rows.Scan(&t.id, &t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
@@ -71,7 +79,9 @@ LIMIT 30
 	}
 
 	for rows.Next() {
-		var t task
+		t := task{
+			user: user,
+		}
 		if err := rows.Scan(&t.id, &t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
@@ -79,4 +89,15 @@ LIMIT 30
 	}
 
 	return tasks, nil
+}
+
+func (db *DB) doneTask(taskID int64) error {
+	const q = `UPDATE tasks SET is_done = TRUE WHERE id = ?`
+
+	_, err := db.Exec(q, taskID)
+	if err != nil {
+		return fmt.Errorf("exec failed: %w", err)
+	}
+
+	return nil
 }

@@ -4,8 +4,10 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
 
@@ -142,6 +144,49 @@ func GetTasksDone(db dbInterface) http.HandlerFunc {
 		}
 
 		if err := render.Render(w, r, newTasksResponse(tasks)); err != nil {
+			log.Println("render failed:", err)
+			_ = render.Render(w, r, errRender(err))
+			return
+		}
+	}
+}
+
+func PutTaskDone(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		taskIDStr := chi.URLParam(r, "taskID")
+		if taskIDStr == "" {
+			_ = render.Render(w, r, errNotFound())
+			return
+		}
+
+		taskID, err := strconv.ParseInt(taskIDStr, 10, 64)
+		if err != nil {
+			log.Println("parseInt failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
+
+		user := r.Context().Value("user").(*user)
+
+		if !hasUserTask(db, taskID, user) {
+			_ = render.Render(w, r, errAuthenticate(errors.New("you do not have this task")))
+			return
+		}
+
+		if err := db.doneTask(taskID); err != nil {
+			log.Println("doneTask failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
+
+		task, err := db.getTaskByID(taskID)
+		if err != nil {
+			log.Println("getTaskByID failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
+
+		if err = render.Render(w, r, newTaskResponse(task)); err != nil {
 			log.Println("render failed:", err)
 			_ = render.Render(w, r, errRender(err))
 			return

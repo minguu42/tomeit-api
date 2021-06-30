@@ -2,12 +2,12 @@ package tomeit
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-
 	"github.com/go-chi/render"
 )
 
@@ -19,7 +19,7 @@ type taskRequest struct {
 
 func (t *taskRequest) Bind(r *http.Request) error {
 	if t.Name == "" {
-		return errors.New("missing required Name fields")
+		return errors.New("missing required name field")
 	}
 	if t.Deadline == "" {
 		t.Deadline = "0001-01-01"
@@ -28,7 +28,7 @@ func (t *taskRequest) Bind(r *http.Request) error {
 }
 
 type taskResponse struct {
-	Id            int64  `json:"id"`
+	ID            int64  `json:"id"`
 	Name          string `json:"name"`
 	Priority      int    `json:"priority"`
 	Deadline      string `json:"deadline"`
@@ -38,7 +38,21 @@ type taskResponse struct {
 	UpdatedAt     string `json:"updatedAt"`
 }
 
-func (t taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
+func newTaskResponse(t *task) *taskResponse {
+	r := taskResponse{
+		ID:            t.id,
+		Name:          t.name,
+		Priority:      t.priority,
+		Deadline:      t.deadline.Format("2006-01-02"),
+		IsDone:        t.isDone,
+		PomodoroCount: 0,
+		CreatedAt:     t.createdAt.Format(time.RFC3339),
+		UpdatedAt:     t.updatedAt.Format(time.RFC3339),
+	}
+	return &r
+}
+
+func (t *taskResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
@@ -46,123 +60,136 @@ type tasksResponse struct {
 	Tasks []*taskResponse `json:"tasks"`
 }
 
-func (ts tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-func newTaskResponse(task *Task) *taskResponse {
-	resp := taskResponse{
-		Id:            task.id,
-		Name:          task.name,
-		Priority:      task.priority,
-		Deadline:      task.deadline.Format("2006-01-02"),
-		IsDone:        task.isDone,
-		PomodoroCount: 0,
-		CreatedAt:     task.createdAt.Format(time.RFC3339),
-		UpdatedAt:     task.updatedAt.Format(time.RFC3339),
-	}
-	return &resp
-}
-
-func newTasksResponse(tasks []*Task) *tasksResponse {
+func newTasksResponse(tasks []*task) *tasksResponse {
 	var ts []*taskResponse
 	for _, t := range tasks {
 		ts = append(ts, newTaskResponse(t))
 	}
-	var resp tasksResponse
-	resp.Tasks = ts
-	return &resp
+	return &tasksResponse{Tasks: ts}
 }
 
-func PostTask(w http.ResponseWriter, r *http.Request) {
-	data := &taskRequest{}
-	if err := render.Bind(r, data); err != nil {
-		_ = render.Render(w, r, errInvalidRequest(err))
-		return
-	}
+func (ts *tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
 
-	deadline, err := time.Parse("2006-01-02", data.Deadline)
-	if err != nil {
-		_ = render.Render(w, r, errInvalidRequest(err))
-		return
-	}
+func PostTask(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data := &taskRequest{}
+		if err := render.Bind(r, data); err != nil {
+			log.Println("bind failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
 
-	user := r.Context().Value("user").(User)
+		deadline, err := time.Parse("2006-01-02", data.Deadline)
+		if err != nil {
+			log.Println("parse failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
 
-	taskId, err := createTask(user.id, data.Name, data.Priority, deadline)
-	if err != nil {
-		_ = render.Render(w, r, errInvalidRequest(err))
-		return
-	}
+		user := r.Context().Value("user").(*user)
 
-	task, err := getTaskById(taskId)
-	if err != nil {
-		_ = render.Render(w, r, errInvalidRequest(err))
-		return
-	}
+		taskID, err := db.createTask(user.id, data.Name, data.Priority, deadline)
+		if err != nil {
+			log.Println("createTask failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
 
-	render.Status(r, http.StatusCreated)
-	if err = render.Render(w, r, newTaskResponse(&task)); err != nil {
-		_ = render.Render(w, r, errRender(err))
-		return
+		task, err := db.getTaskByID(taskID)
+		if err != nil {
+			log.Println("getTaskByID failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
+
+		render.Status(r, http.StatusCreated)
+		if err = render.Render(w, r, newTaskResponse(task)); err != nil {
+			log.Println("render failed:", err)
+			_ = render.Render(w, r, errRender(err))
+			return
+		}
 	}
 }
 
-func GetUndoneTasks(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(User)
+func GetTasks(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := r.Context().Value("user").(*user)
 
-	tasks, err := getUndoneTasksByUserID(user.id)
-	if err != nil {
-		_ = render.Render(w, r, errInvalidRequest(err))
-		return
+		tasks, err := db.getTasksByUser(user)
+		if err != nil {
+			log.Println("getTasksByUser failed:", err)
+			_ = render.Render(w, r, errNotFound())
+			return
+		}
+
+		if err := render.Render(w, r, newTasksResponse(tasks)); err != nil {
+			log.Println("render failed:", err)
+			_ = render.Render(w, r, errRender(err))
+			return
+		}
 	}
-
-	_ = render.Render(w, r, newTasksResponse(tasks))
 }
 
-func GetDoneTasks(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(User)
+func GetTasksDone(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := r.Context().Value("user").(*user)
 
-	tasks, err := getDoneTasksByUserID(user.id)
-	if err != nil {
-		_ = render.Render(w, r, errInvalidRequest(err))
-		return
+		tasks, err := db.getDoneTasksByUser(user)
+		if err != nil {
+			log.Println("getTasksByUser failed:", err)
+			_ = render.Render(w, r, errNotFound())
+			return
+		}
+
+		if err := render.Render(w, r, newTasksResponse(tasks)); err != nil {
+			log.Println("render failed:", err)
+			_ = render.Render(w, r, errRender(err))
+			return
+		}
 	}
-
-	_ = render.Render(w, r, newTasksResponse(tasks))
 }
 
-func PutTaskDone(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(User)
+func PutTaskDone(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		taskIDStr := chi.URLParam(r, "taskID")
+		if taskIDStr == "" {
+			_ = render.Render(w, r, errNotFound())
+			return
+		}
 
-	strTaskId := chi.URLParam(r, "taskId")
-	if strTaskId == "" {
-		_ = render.Render(w, r, errInvalidRequest(errors.New("URL path does not have taskId")))
-		return
+		taskID, err := strconv.ParseInt(taskIDStr, 10, 64)
+		if err != nil {
+			log.Println("parseInt failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
+
+		user := r.Context().Value("user").(*user)
+
+		if !hasUserTask(db, taskID, user) {
+			_ = render.Render(w, r, errAuthenticate(errors.New("you do not have this task")))
+			return
+		}
+
+		if err := db.doneTask(taskID); err != nil {
+			log.Println("doneTask failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
+
+		task, err := db.getTaskByID(taskID)
+		if err != nil {
+			log.Println("getTaskByID failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
+
+		if err = render.Render(w, r, newTaskResponse(task)); err != nil {
+			log.Println("render failed:", err)
+			_ = render.Render(w, r, errRender(err))
+			return
+		}
 	}
-
-	taskId, err := strconv.ParseInt(strTaskId, 10, 64)
-	if err != nil {
-		_ = render.Render(w, r, errInvalidRequest(errors.New("taskId must be number")))
-		return
-	}
-
-	task, err := getTaskById(taskId)
-	if err != nil {
-		_ = render.Render(w, r, errInvalidRequest(errors.New("task does not exits")))
-		return
-	}
-
-	if user.id != task.userId {
-		_ = render.Render(w, r, errAuthenticate(errors.New("you do not own this task")))
-		return
-	}
-
-	if err := completeTask(task.id); err != nil {
-		_ = render.Render(w, r, errUnexpectCondition(err))
-		return
-	}
-	task.isDone = true
-
-	_ = render.Render(w, r, newTaskResponse(&task))
 }

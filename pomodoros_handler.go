@@ -2,6 +2,7 @@ package tomeit
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -9,59 +10,118 @@ import (
 )
 
 type pomodoroLogRequest struct {
-	TaskId int64 `json:"taskId"`
+	TaskID int64 `json:"taskID"`
 }
 
 func (p *pomodoroLogRequest) Bind(r *http.Request) error {
-	if p.TaskId <= 0 {
-		return errors.New("taskId should be positive num")
+	if p.TaskID == 0 {
+		return errors.New("missing required taskID field")
 	}
 	return nil
 }
 
 type pomodoroLogResponse struct {
-	Id        int64         `json:"id"`
+	ID        int64         `json:"id"`
 	Task      *taskResponse `json:"task"`
 	CreatedAt string        `json:"createdAt"`
 }
 
-func newPomodoroLogResponse(pomodoroLog *pomodoroLog) *pomodoroLogResponse {
-	resp := pomodoroLogResponse{
-		Id:        pomodoroLog.id,
-		Task:      newTaskResponse(pomodoroLog.task),
-		CreatedAt: pomodoroLog.createdAt.Format(time.RFC3339),
+func newPomodoroLogResponse(p *pomodoroLog) *pomodoroLogResponse {
+	r := pomodoroLogResponse{
+		ID:        p.id,
+		Task:      newTaskResponse(p.task),
+		CreatedAt: p.createdAt.Format(time.RFC3339),
 	}
-
-	return &resp
+	return &r
 }
 
-func (resp pomodoroLogResponse) Render(w http.ResponseWriter, r *http.Request) error {
+func (p *pomodoroLogResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func PostPomodoroLog(w http.ResponseWriter, r *http.Request) {
-	data := &pomodoroLogRequest{}
-	if err := render.Bind(r, data); err != nil {
-		_ = render.Render(w, r, errInvalidRequest(err))
-		return
+type pomodoroLogsResponse struct {
+	PomodoroLogs []*pomodoroLogResponse `json:"pomodoroLogs"`
+}
+
+func newPomodoroLogsResponse(pomodoroLogs []*pomodoroLog) *pomodoroLogsResponse {
+	var ps []*pomodoroLogResponse
+	for _, p := range pomodoroLogs {
+		ps = append(ps, newPomodoroLogResponse(p))
 	}
+	return &pomodoroLogsResponse{PomodoroLogs: ps}
+}
 
-	user := r.Context().Value("user").(User)
+func (ps *pomodoroLogsResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
 
-	id, err := createPomodoroLog(user.id, data.TaskId)
-	if err != nil {
-		_ = render.Render(w, r, errInvalidRequest(err))
-		return
+func PostPomodoroLog(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data := &pomodoroLogRequest{}
+		if err := render.Bind(r, data); err != nil {
+			log.Println("bind failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
+
+		user := r.Context().Value("user").(*user)
+
+		pomodoroLogID, err := db.createPomodoroLog(user.id, data.TaskID)
+		if err != nil {
+			log.Println("createPomodoroLog failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
+
+		pomodoroLog, err := db.getPomodoroLogByID(pomodoroLogID)
+		if err != nil {
+			log.Println("getPomodoroLogByID failed:", err)
+			_ = render.Render(w, r, errInvalidRequest(err))
+			return
+		}
+
+		render.Status(r, http.StatusCreated)
+		if err = render.Render(w, r, newPomodoroLogResponse(pomodoroLog)); err != nil {
+			log.Println("render failed:", err)
+			_ = render.Render(w, r, errRender(err))
+			return
+		}
 	}
+}
 
-	pomodoroLog, err := getPomodoroLogById(id)
-	if err != nil {
-		_ = render.Render(w, r, errInvalidRequest(err))
-		return
+func GetPomodoroLogs(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := r.Context().Value("user").(*user)
+
+		pomodoroLogs, err := db.getPomodoroLogsByUser(user)
+		if err != nil {
+			log.Println("getPomodoroLogsByUser failed:", err)
+			_ = render.Render(w, r, errNotFound())
+			return
+		}
+
+		if err := render.Render(w, r, newPomodoroLogsResponse(pomodoroLogs)); err != nil {
+			log.Println("render failed:", err)
+			_ = render.Render(w, r, errRender(err))
+			return
+		}
 	}
+}
 
-	render.Status(r, http.StatusCreated)
-	if err := render.Render(w, r, newPomodoroLogResponse(pomodoroLog)); err != nil {
+type restCountResponse struct {
+	CountToNextRest int `json:"countToNextRest"`
+}
+
+func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func GetRestCount(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(*user)
+
+	if err := render.Render(w, r, &restCountResponse{CountToNextRest: user.restCount}); err != nil {
+		log.Println("render failed:", err)
 		_ = render.Render(w, r, errRender(err))
+		return
 	}
 }

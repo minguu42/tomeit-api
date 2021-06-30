@@ -4,7 +4,7 @@ import "time"
 
 type pomodoroLog struct {
 	id        int64
-	userId    int64
-	task      *Task
+	user      *user
+	task      *task
 	createdAt time.Time
 }

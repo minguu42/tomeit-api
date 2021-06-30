@@ -53,7 +53,7 @@ func errRender(err error) render.Renderer {
 	}
 }
 
-func errUnexpectCondition(err error) render.Renderer {
+func errUnexpectedEvent(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 500,

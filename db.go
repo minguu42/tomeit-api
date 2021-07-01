@@ -9,11 +9,14 @@ import (
 type dbInterface interface {
 	createUser(digestUID string) (*user, error)
 	getUserByDigestUID(digestUID string) (*user, error)
+	decrementRestCount(user *user) error
+
 	createTask(userID int64, name string, priority int, deadline time.Time) (int64, error)
 	getTaskByID(id int64) (*task, error)
 	getTasksByUser(user *user) ([]*task, error)
 	getDoneTasksByUser(user *user) ([]*task, error)
 	doneTask(taskID int64) error
+
 	createPomodoroLog(userID, taskID int64) (int64, error)
 	getPomodoroLogByID(id int64) (*pomodoroLog, error)
 	getPomodoroLogsByUser(user *user) ([]*pomodoroLog, error)

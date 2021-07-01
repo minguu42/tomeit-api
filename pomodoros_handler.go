@@ -80,6 +80,12 @@ func PostPomodoroLog(db dbInterface) http.HandlerFunc {
 			return
 		}
 
+		if err := db.decrementRestCount(user); err != nil {
+			log.Println("decrementRestCount failed:", err)
+			_ = render.Render(w, r, errUnexpectedEvent(err))
+			return
+		}
+
 		render.Status(r, http.StatusCreated)
 		if err = render.Render(w, r, newPomodoroLogResponse(pomodoroLog)); err != nil {
 			log.Println("render failed:", err)

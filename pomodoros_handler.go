@@ -26,10 +26,10 @@ type pomodoroLogResponse struct {
 	CreatedAt string        `json:"createdAt"`
 }
 
-func newPomodoroLogResponse(p *pomodoroLog) *pomodoroLogResponse {
+func newPomodoroLogResponse(p *pomodoroLog, db dbInterface) *pomodoroLogResponse {
 	r := pomodoroLogResponse{
 		ID:        p.id,
-		Task:      newTaskResponse(p.task),
+		Task:      newTaskResponse(p.task, db),
 		CreatedAt: p.createdAt.Format(time.RFC3339),
 	}
 	return &r
@@ -43,10 +43,10 @@ type pomodoroLogsResponse struct {
 	PomodoroLogs []*pomodoroLogResponse `json:"pomodoroLogs"`
 }
 
-func newPomodoroLogsResponse(pomodoroLogs []*pomodoroLog) *pomodoroLogsResponse {
+func newPomodoroLogsResponse(pomodoroLogs []*pomodoroLog, db dbInterface) *pomodoroLogsResponse {
 	var ps []*pomodoroLogResponse
 	for _, p := range pomodoroLogs {
-		ps = append(ps, newPomodoroLogResponse(p))
+		ps = append(ps, newPomodoroLogResponse(p, db))
 	}
 	return &pomodoroLogsResponse{PomodoroLogs: ps}
 }
@@ -87,7 +87,7 @@ func PostPomodoroLog(db dbInterface) http.HandlerFunc {
 		}
 
 		render.Status(r, http.StatusCreated)
-		if err = render.Render(w, r, newPomodoroLogResponse(pomodoroLog)); err != nil {
+		if err = render.Render(w, r, newPomodoroLogResponse(pomodoroLog, db)); err != nil {
 			log.Println("render failed:", err)
 			_ = render.Render(w, r, errRender(err))
 			return
@@ -106,7 +106,7 @@ func GetPomodoroLogs(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		if err := render.Render(w, r, newPomodoroLogsResponse(pomodoroLogs)); err != nil {
+		if err := render.Render(w, r, newPomodoroLogsResponse(pomodoroLogs, db)); err != nil {
 			log.Println("render failed:", err)
 			_ = render.Render(w, r, errRender(err))
 			return

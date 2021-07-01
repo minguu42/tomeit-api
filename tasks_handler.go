@@ -38,14 +38,19 @@ type taskResponse struct {
 	UpdatedAt     string `json:"updatedAt"`
 }
 
-func newTaskResponse(t *task) *taskResponse {
+func newTaskResponse(t *task, db dbInterface) *taskResponse {
+	c, err := db.getPomodoroCountByID(t.id)
+	if err != nil {
+		c = 0
+	}
+
 	r := taskResponse{
 		ID:            t.id,
 		Name:          t.name,
 		Priority:      t.priority,
 		Deadline:      t.deadline.Format("2006-01-02"),
 		IsDone:        t.isDone,
-		PomodoroCount: 0,
+		PomodoroCount: c,
 		CreatedAt:     t.createdAt.Format(time.RFC3339),
 		UpdatedAt:     t.updatedAt.Format(time.RFC3339),
 	}
@@ -60,10 +65,10 @@ type tasksResponse struct {
 	Tasks []*taskResponse `json:"tasks"`
 }
 
-func newTasksResponse(tasks []*task) *tasksResponse {
+func newTasksResponse(tasks []*task, db dbInterface) *tasksResponse {
 	var ts []*taskResponse
 	for _, t := range tasks {
-		ts = append(ts, newTaskResponse(t))
+		ts = append(ts, newTaskResponse(t, db))
 	}
 	return &tasksResponse{Tasks: ts}
 }
@@ -105,7 +110,7 @@ func PostTask(db dbInterface) http.HandlerFunc {
 		}
 
 		render.Status(r, http.StatusCreated)
-		if err = render.Render(w, r, newTaskResponse(task)); err != nil {
+		if err = render.Render(w, r, newTaskResponse(task, db)); err != nil {
 			log.Println("render failed:", err)
 			_ = render.Render(w, r, errRender(err))
 			return
@@ -124,7 +129,7 @@ func GetTasks(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		if err := render.Render(w, r, newTasksResponse(tasks)); err != nil {
+		if err := render.Render(w, r, newTasksResponse(tasks, db)); err != nil {
 			log.Println("render failed:", err)
 			_ = render.Render(w, r, errRender(err))
 			return
@@ -143,7 +148,7 @@ func GetTasksDone(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		if err := render.Render(w, r, newTasksResponse(tasks)); err != nil {
+		if err := render.Render(w, r, newTasksResponse(tasks, db)); err != nil {
 			log.Println("render failed:", err)
 			_ = render.Render(w, r, errRender(err))
 			return
@@ -186,7 +191,7 @@ func PutTaskDone(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		if err = render.Render(w, r, newTaskResponse(task)); err != nil {
+		if err = render.Render(w, r, newTaskResponse(task, db)); err != nil {
 			log.Println("render failed:", err)
 			_ = render.Render(w, r, errRender(err))
 			return

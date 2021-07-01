@@ -77,7 +77,6 @@ func setupTestGetTasks(tb testing.TB) {
 		tb.Fatal("setupTestGetTasks failed:", err)
 	}
 	time.Sleep(time.Second)
-
 	if _, err := testDB.Exec(createTask2); err != nil {
 		tb.Fatal("setupTestGetTasks failed:", err)
 	}
@@ -175,92 +174,179 @@ func TestGetTasks(t *testing.T) {
 	})
 }
 
-//func TestGetTasksDone(t *testing.T) {
-//	t.Run("success", func(t *testing.T) {
-//		req, err := http.NewRequest("GET", testUrl+"/tasks/done", nil)
-//		if err != nil {
-//			t.Error("Create request failed:", err)
-//		}
-//
-//		resp, err := testClient.Do(req)
-//		if err != nil {
-//			t.Error("Do request failed:", err)
-//		}
-//
-//		bytes, err := io.ReadAll(resp.Body)
-//		if err != nil {
-//			t.Error("Read response failed:", err)
-//		}
-//		if err := resp.Body.Close(); err != nil {
-//			t.Error("Close response failed:", err)
-//		}
-//
-//		var body tasksResponse
-//		if err := json.Unmarshal(bytes, &body); err != nil {
-//			t.Error("Unmarshal json failed:", err)
-//		}
-//
-//		if resp.StatusCode != 200 {
-//			t.Error("Status code should be 200, but", resp.StatusCode)
-//		}
-//
-//		if len(body.Tasks) != 2 {
-//			t.Error("Tasks should have two task, but", len(body.Tasks))
-//		}
-//	})
-//}
-//
-//func TestPutTaskDone(t *testing.T) {
-//	t.Run("success", func(t *testing.T) {
-//		req, err := http.NewRequest("PUT", testUrl+"/tasks/done/1", nil)
-//		if err != nil {
-//			t.Error("Create request failed:", err)
-//		}
-//
-//		resp, err := testClient.Do(req)
-//		if err != nil {
-//			t.Error("Do request failed:", err)
-//		}
-//
-//		bytes, err := io.ReadAll(resp.Body)
-//		if err != nil {
-//			t.Error("Read response failed:", err)
-//		}
-//		if err := resp.Body.Close(); err != nil {
-//			t.Error("Close response failed:", err)
-//		}
-//
-//		var body taskResponse
-//		if err := json.Unmarshal(bytes, &body); err != nil {
-//			t.Error("Unmarshal json failed:", err)
-//		}
-//
-//		if resp.StatusCode != 200 {
-//			t.Error("Status code should be 201, but", resp.StatusCode)
-//		}
-//		if body.ID != 1 {
-//			t.Error("Id should be 1, but", body.ID)
-//		}
-//		if body.Name != "タスク1" {
-//			t.Error("Name should be タスク1, but", body.Name)
-//		}
-//		if body.Priority != 0 {
-//			t.Error("Priority should be 0, but", body.Priority)
-//		}
-//		if body.Deadline != "2021-06-30" {
-//			t.Error("Deadline should be 2021-06-30, but", body.Deadline)
-//		}
-//		if body.IsDone != true {
-//			t.Error("IsDone should be true, but", body.IsDone)
-//		}
-//		if body.PomodoroCount != 0 {
-//			t.Error("PomodoroCount should be 0, but", body.PomodoroCount)
-//		}
-//		if body.CreatedAt == "" {
-//			t.Error("CreatedAt does not exist")
-//		}
-//		if body.UpdatedAt == "" {
-//			t.Error("UpdatedAt does not exist")
-//		}
-//	})
-//}
+func setupTestGetTasksDone(tb testing.TB) {
+	const createTask1 = `INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク1', 0, '2021-01-01', true)`
+	const createTask2 = `INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク2', 1, '2021-12-31', false)`
+	const createTask3 = `INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク3', 2, '2021-01-02', true)`
+
+	if _, err := testDB.Exec(createTask1); err != nil {
+		tb.Fatal("setupTestGetTasksDone failed:", err)
+	}
+	time.Sleep(time.Second)
+	if _, err := testDB.Exec(createTask2); err != nil {
+		tb.Fatal("setupTestGetTasksDone failed:", err)
+	}
+	if _, err := testDB.Exec(createTask3); err != nil {
+		tb.Fatal("setupTestGetTasksDone failed:", err)
+	}
+}
+
+func TestGetTasksDone(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		setupTestDB()
+		setupTestGetTasksDone(t)
+
+		req, err := http.NewRequest("GET", testUrl+"/tasks/done", nil)
+		if err != nil {
+			t.Error("Create request failed:", err)
+		}
+
+		resp, err := testClient.Do(req)
+		if err != nil {
+			t.Error("Do request failed:", err)
+		}
+
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Error("Read response failed:", err)
+		}
+		if err := resp.Body.Close(); err != nil {
+			t.Error("Close response failed:", err)
+		}
+
+		var body tasksResponse
+		if err := json.Unmarshal(bytes, &body); err != nil {
+			t.Error("Unmarshal json failed:", err)
+		}
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+
+		if len(body.Tasks) != 2 {
+			t.Error("Tasks should have 2 task, but", len(body.Tasks))
+		}
+
+		task3 := body.Tasks[0]
+		if task3.ID != 3 {
+			t.Error("Id should be 3, but", task3.ID)
+		}
+		if task3.Name != "タスク3" {
+			t.Error("Name should be タスク3, but", task3.Name)
+		}
+		if task3.Priority != 2 {
+			t.Error("Priority should be 2, but", task3.Priority)
+		}
+		if task3.Deadline != "2021-01-02" {
+			t.Error("Deadline should be 2021-01-02, but", task3.Deadline)
+		}
+		if task3.IsDone != true {
+			t.Error("IsDone should be true, but", task3.IsDone)
+		}
+		if task3.PomodoroCount != 0 {
+			t.Error("PomodoroCount should be 0, but", task3.PomodoroCount)
+		}
+		if task3.CreatedAt == "" {
+			t.Error("CreatedAt does not exist")
+		}
+		if task3.UpdatedAt == "" {
+			t.Error("UpdatedAt does not exist")
+		}
+
+		task1 := body.Tasks[1]
+		if task1.ID != 1 {
+			t.Error("Id should be 1, but", task1.ID)
+		}
+		if task1.Name != "タスク1" {
+			t.Error("Name should be タスク1, but", task1.Name)
+		}
+		if task1.Priority != 0 {
+			t.Error("Priority should be 0, but", task1.Priority)
+		}
+		if task1.Deadline != "2021-01-01" {
+			t.Error("Deadline should be 2021-01-01, but", task1.Deadline)
+		}
+		if task1.IsDone != true {
+			t.Error("IsDone should be true, but", task1.IsDone)
+		}
+		if task1.PomodoroCount != 0 {
+			t.Error("PomodoroCount should be 0, but", task1.PomodoroCount)
+		}
+		if task1.CreatedAt == "" {
+			t.Error("CreatedAt does not exist")
+		}
+		if task1.UpdatedAt == "" {
+			t.Error("UpdatedAt does not exist")
+		}
+
+		shutdownTestDB()
+	})
+}
+
+func setupTestPutTaskDone(tb testing.TB) {
+	const createTask1 = `INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク1', 0, '2021-01-01', false)`
+
+	if _, err := testDB.Exec(createTask1); err != nil {
+		tb.Fatal("setupTestGetTasks failed:", err)
+	}
+}
+
+func TestPutTaskDone(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		setupTestDB()
+		setupTestPutTaskDone(t)
+
+		req, err := http.NewRequest("PUT", testUrl+"/tasks/done/1", nil)
+		if err != nil {
+			t.Error("Create request failed:", err)
+		}
+
+		resp, err := testClient.Do(req)
+		if err != nil {
+			t.Error("Do request failed:", err)
+		}
+
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Error("Read response failed:", err)
+		}
+		if err := resp.Body.Close(); err != nil {
+			t.Error("Close response failed:", err)
+		}
+
+		var body taskResponse
+		if err := json.Unmarshal(bytes, &body); err != nil {
+			t.Error("Unmarshal json failed:", err)
+		}
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 201, but", resp.StatusCode)
+		}
+		if body.ID != 1 {
+			t.Error("Id should be 1, but", body.ID)
+		}
+		if body.Name != "タスク1" {
+			t.Error("Name should be タスク1, but", body.Name)
+		}
+		if body.Priority != 0 {
+			t.Error("Priority should be 0, but", body.Priority)
+		}
+		if body.Deadline != "2021-01-01" {
+			t.Error("Deadline should be 2021-01-01, but", body.Deadline)
+		}
+		if body.IsDone != true {
+			t.Error("IsDone should be true, but", body.IsDone)
+		}
+		if body.PomodoroCount != 0 {
+			t.Error("PomodoroCount should be 0, but", body.PomodoroCount)
+		}
+		if body.CreatedAt == "" {
+			t.Error("CreatedAt does not exist")
+		}
+		if body.UpdatedAt == "" {
+			t.Error("UpdatedAt does not exist")
+		}
+
+		shutdownTestDB()
+	})
+}

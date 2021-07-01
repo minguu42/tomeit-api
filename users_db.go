@@ -33,3 +33,22 @@ func (db *DB) getUserByDigestUID(digestUID string) (*user, error) {
 
 	return &u, nil
 }
+
+func (db *DB) decrementRestCount(user *user) error {
+	restCount := user.restCount
+
+	nextRestCount := 4
+	if restCount == 1 {
+		nextRestCount = 4
+	} else {
+		nextRestCount -= 1
+	}
+
+	const q = `UPDATE users SET rest_count = ? WHERE id = ?`
+
+	if _, err := db.Exec(q, nextRestCount, user.id); err != nil {
+		return fmt.Errorf("exec failed: %w", err)
+	}
+
+	return nil
+}

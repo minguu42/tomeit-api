@@ -91,6 +91,17 @@ LIMIT 30
 	return tasks, nil
 }
 
+func (db *DB) getPomodoroCountByID(id int64) (int, error) {
+	const q = `SELECT COUNT(*) FROM pomodoro_logs WHERE task_id = ?`
+
+	var c int
+	if err := db.QueryRow(q, id).Scan(&c); err != nil {
+		return 0, fmt.Errorf("scan failed: %w", err)
+	}
+
+	return c, nil
+}
+
 func (db *DB) doneTask(taskID int64) error {
 	const q = `UPDATE tasks SET is_done = TRUE WHERE id = ?`
 

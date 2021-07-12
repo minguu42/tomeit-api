@@ -50,12 +50,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Task"
     get:
-      summary: 未完了タスク一覧取得 API
+      summary: タスク一覧取得 API
       tags:
         - tasks
       description: |
-        未完了のタスク一覧を取得する.
-        作られた順でタスクを最大20個取得する.
+        タスク一覧を取得する.
+        更新順で最大30個取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
       responses:
@@ -64,17 +64,20 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
-  /tasks/done/today:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
+  /tasks/done:
     get:
-      summary: 今日完了したタスク一覧取得 API
+      summary: 完了済みタスク一覧取得 API
       tags:
         - tasks
       description: |
         完了済みタスクを取得する.
-        新しい順から1週間前までのタスクを最大100個取得する.
+        更新順で最大30個取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
       responses:
@@ -86,16 +89,16 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Task"
-  /tasks/done/{taskId}:
+  /tasks/done/{taskID}:
     put:
       summary: タスク完了 API
       tags:
         - tasks
       description: |
         タスクを完了する.
-        taskId で一意のタスクを指定する.
+        taskID で一意のタスクを指定する.
       parameters:
-        - $ref: "#/components/parameters/taskId"
+        - $ref: "#/components/parameters/taskID"
         - $ref: "#/components/parameters/idToken"
       responses:
         "200":
@@ -120,7 +123,7 @@ paths:
             schema:
               type: object
               properties:
-                taskId:
+                taskID:
                   type: integer
                   example: 1
       responses:
@@ -130,13 +133,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PomodoroLog"
-  /pomodoros/logs/today:
     get:
-      summary: 今日行なったポモドーロログ一覧取得 API
+      summary: ポモドーロログ一覧取得 API
       tags:
         - pomodoros
       description: |
-        リクエストを送った日に実行したポモドーロの記録を一覧で取得する.
+        ポモドーロログを一覧で取得する.
+        更新順で最大30件まで取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
       responses:
@@ -181,8 +184,8 @@ components:
       required: true
       schema:
         type: string
-    taskId:
-      name: taskId
+    taskID:
+      name: taskID
       description: タスク番号
       in: path
       required: true

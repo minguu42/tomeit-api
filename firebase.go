@@ -2,40 +2,48 @@ package tomeit
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
+	"fmt"
 	"log"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
 )
 
-var firebaseApp *firebase.App
-
-func InitFirebaseApp() {
-	var err error
-	firebaseApp, err = firebase.NewApp(context.Background(), nil)
-	if err != nil {
-		log.Fatalf("initialize firebase firebaseApp failed: %v\n", err)
-	}
+type firebaseAppInterface interface {
+	verifyIDToken(ctx context.Context, idToken string) (*auth.Token, error)
 }
 
-func verifyIDToken(ctx context.Context, app *firebase.App, idToken string) (*auth.Token, error) {
+type FirebaseApp struct {
+	*firebase.App
+}
+
+func InitFirebaseApp() *FirebaseApp {
+	app, err := firebase.NewApp(context.Background(), nil)
+	if err != nil {
+		log.Fatalln("Init firebase app failed:", err)
+	}
+	return &FirebaseApp{app}
+}
+
+func (app *FirebaseApp) verifyIDToken(ctx context.Context, idToken string) (*auth.Token, error) {
 	client, err := app.Auth(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("auth failed: %w", err)
 	}
 
 	token, err := client.VerifyIDToken(ctx, idToken)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("verifyIDToken failed: %w", err)
 	}
 
 	return token, nil
 }
 
-func hash(token string) string {
-	digestTokenByte := sha256.Sum256([]byte(token))
-	digestToken := hex.EncodeToString(digestTokenByte[:])
-	return digestToken
+type firebaseAppMock struct{}
+
+func (app *firebaseAppMock) verifyIDToken(ctx context.Context, idToken string) (*auth.Token, error) {
+	token := auth.Token{
+		UID: "someUserUID",
+	}
+	return &token, nil
 }

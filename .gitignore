@@ -24,6 +24,8 @@
 
 # End of https://www.toptal.com/developers/gitignore/api/go
 
-# Configuration and credential file
+# Environment and credential file
 .env
-tomeit-firebase-adminsdk.json
+
+tomeit-dev-firebase-adminsdk.json
+tomeit-prod-firebase-adminsdk.json

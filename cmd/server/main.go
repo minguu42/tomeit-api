@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/minguu42/tomeit-api"
 
@@ -19,7 +20,7 @@ import (
 func main() {
 	firebaseApp := tomeit.InitFirebaseApp()
 
-	db := tomeit.OpenDB("mysql", os.Getenv("DATABASE_URL"))
+	db := tomeit.OpenDB("mysql", os.Getenv("DSN"))
 	defer tomeit.CloseDB(db)
 
 	r := chi.NewRouter()
@@ -28,9 +29,9 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "https://tomeit.vercel.app"}, //TODO: 開発後は http://localhost:3000 を除外する.
+		AllowedOrigins:   strings.Split(os.Getenv("ALLOW_ORIGINS"), ","),
 		AllowedMethods:   []string{"GET", "POST", "PUT", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Requested-With", "origin", "X-Csrftoken"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 	}))

@@ -53,7 +53,12 @@ func main() {
 		r.Get("/rest/count", tomeit.GetRestCount)
 	})
 
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatalln("$PORT must be set")
+	}
+
+	if err := http.ListenAndServe(":" + port, r); err != nil {
 		log.Fatalln("ListenAndServe failed:", err)
 	}
 }

@@ -26,3 +26,5 @@
 
 # Configuration and credential file
 .env
+
+tomeit-dev-firebase-adminsdk.json

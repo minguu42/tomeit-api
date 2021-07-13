@@ -40,11 +40,12 @@ func OpenDB(driverName, databaseUrl string) *DB {
 		if err == nil {
 			isDBReady = true
 		} else {
+			log.Println("Ping db failed. try again.")
 			time.Sleep(time.Second * 15)
 			failureTimes += 1
 		}
 
-		if failureTimes >= 3 {
+		if failureTimes >= 2 {
 			log.Fatalln("Ping db failed:", err)
 		}
 	}

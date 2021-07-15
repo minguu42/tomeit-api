@@ -59,7 +59,7 @@ func main() {
 		log.Fatalln("$PORT must be set")
 	}
 
-	if err := http.ListenAndServe(":" + port, r); err != nil {
+	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatalln("ListenAndServe failed:", err)
 	}
 }

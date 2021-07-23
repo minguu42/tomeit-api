@@ -3,7 +3,7 @@ openapi: 3.0.0
 info:
   version: 0.1.0
   title: tomeit API 仕様書
-  description: tomeit で利用する REST API の仕様書である.
+  description: tomeit の REST API の仕様書である.
 
 servers:
   - description: ローカルの開発環境
@@ -41,16 +41,17 @@ paths:
                   example: 2
                 deadline:
                   type: string
-                  example: "2021-06-21"
+                  example: 2021-06-21
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+  /tasks/undone:
     get:
-      summary: タスク一覧取得 API
+      summary: 未完了タスク一覧取得 API
       tags:
         - tasks
       description: |
@@ -107,9 +108,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
-  /pomodoros/logs:
+  /pomodoros/records:
     post:
-      summary: ポモドーロログ作成 API
+      summary: ポモドーロ記録 API
       tags:
         - pomodoros
       description: |
@@ -127,18 +128,18 @@ paths:
                   type: integer
                   example: 1
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PomodoroLog"
+                $ref: "#/components/schemas/PomodoroRecord"
     get:
-      summary: ポモドーロログ一覧取得 API
+      summary: ポモドーロ記録一覧取得 API
       tags:
         - pomodoros
       description: |
-        ポモドーロログを一覧で取得する.
+        ポモドーロの実行記録を一覧で取得する.
         更新順で最大30件まで取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
@@ -153,8 +154,28 @@ paths:
                   pomodoroLogs:
                     type: array
                     items:
-                      $ref: "#/components/schemas/PomodoroLog"
-  /pomodoros/rest/count:
+                      $ref: "#/components/schemas/PomodoroRecord"
+  /pomodoros/records/count/today:
+    get:
+      summary: 今日実行したポモドーロ数取得 API
+      tags:
+        - pomodoros
+      description: |
+        今日実行したポモドーロの数を取得する.
+      parameters:
+        - $ref: "#/components/parameters/idToken"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  todayPomodoroCount:
+                    type: integer
+                    example: 8
+  /pomodoros/rest-count:
     get:
       summary: 次の15分休憩までのカウント取得 API
       tags:
@@ -171,7 +192,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  countToNextRest:
+                  restCount:
                     type: integer
                     example: 3
 
@@ -220,7 +241,7 @@ components:
         updatedAt:
           type: string
           example: "2021-06-23T12:21:49Z"
-    PomodoroLog:
+    PomodoroRecord:
       type: object
       properties:
         id:

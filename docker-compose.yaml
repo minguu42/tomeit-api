@@ -6,8 +6,9 @@ services:
       dockerfile: build/Dockerfile
     environment:
       - PORT
-      - DATABASE_URL
+      - DSN
       - GOOGLE_APPLICATION_CREDENTIALS
+      - ALLOW_ORIGINS
     container_name: tomeit-api
     stdin_open: true
     tty: true

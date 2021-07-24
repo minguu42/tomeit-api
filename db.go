@@ -27,8 +27,8 @@ type DB struct {
 	*sql.DB
 }
 
-func OpenDB(driverName, databaseUrl string) *DB {
-	db, err := sql.Open(driverName, databaseUrl)
+func OpenDB(driver, dsn string) *DB {
+	db, err := sql.Open(driver, dsn)
 	if err != nil {
 		log.Fatalln("Open db failed:", err)
 	}

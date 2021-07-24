@@ -93,7 +93,7 @@ func PostTask(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		user := r.Context().Value("user").(*user)
+		user := r.Context().Value(userKey).(*user)
 
 		taskID, err := db.createTask(user.id, data.Name, data.Priority, deadline)
 		if err != nil {
@@ -120,7 +120,7 @@ func PostTask(db dbInterface) http.HandlerFunc {
 
 func GetTasks(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user := r.Context().Value("user").(*user)
+		user := r.Context().Value(userKey).(*user)
 
 		tasks, err := db.getTasksByUser(user)
 		if err != nil {
@@ -139,7 +139,7 @@ func GetTasks(db dbInterface) http.HandlerFunc {
 
 func GetTasksDone(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user := r.Context().Value("user").(*user)
+		user := r.Context().Value(userKey).(*user)
 
 		tasks, err := db.getDoneTasksByUser(user)
 		if err != nil {
@@ -171,7 +171,7 @@ func PutTaskDone(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		user := r.Context().Value("user").(*user)
+		user := r.Context().Value(userKey).(*user)
 
 		if !hasUserTask(db, taskID, user) {
 			_ = render.Render(w, r, errAuthenticate(errors.New("you do not have this task")))

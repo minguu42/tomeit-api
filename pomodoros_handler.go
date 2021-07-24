@@ -64,7 +64,7 @@ func PostPomodoroLog(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		user := r.Context().Value("user").(*user)
+		user := r.Context().Value(userKey).(*user)
 
 		pomodoroLogID, err := db.createPomodoroLog(user.id, data.TaskID)
 		if err != nil {
@@ -97,7 +97,7 @@ func PostPomodoroLog(db dbInterface) http.HandlerFunc {
 
 func GetPomodoroLogs(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user := r.Context().Value("user").(*user)
+		user := r.Context().Value(userKey).(*user)
 
 		pomodoroLogs, err := db.getPomodoroLogsByUser(user)
 		if err != nil {
@@ -123,7 +123,7 @@ func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error
 }
 
 func GetRestCount(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(*user)
+	user := r.Context().Value(userKey).(*user)
 
 	if err := render.Render(w, r, &restCountResponse{CountToNextRest: user.restCount}); err != nil {
 		log.Println("render failed:", err)

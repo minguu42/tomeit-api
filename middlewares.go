@@ -10,6 +10,10 @@ import (
 
 type Middleware func(http.Handler) http.Handler
 
+type key int
+
+var userKey key
+
 func UserCtx(db dbInterface, firebaseApp firebaseAppInterface) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +39,7 @@ func UserCtx(db dbInterface, firebaseApp firebaseAppInterface) Middleware {
 				}
 			}
 
-			ctx = context.WithValue(ctx, "user", user)
+			ctx = context.WithValue(ctx, userKey, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

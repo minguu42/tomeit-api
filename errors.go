@@ -19,20 +19,20 @@ func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func errInvalidRequest(err error) render.Renderer {
+func errBadRequest(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 400,
-		StatusText:     "Invalid request.",
+		StatusText:     "Request is wrong",
 		ErrorText:      err.Error(),
 	}
 }
 
-func errAuthenticate(err error) render.Renderer {
+func errAuthentication(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 401,
-		StatusText:     "User authentication failed.",
+		StatusText:     "User authentication failed",
 		ErrorText:      err.Error(),
 	}
 }

@@ -69,25 +69,24 @@ func TestPostTask(t *testing.T) {
 	})
 }
 
-func setupTestGetTasks(tb testing.TB) {
+func setupTestGetTasksUndone(tb testing.TB) {
 	const createTask1 = `INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク1', 0, '2021-01-01', false)`
 	const createTask2 = `INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク2', 1, '2021-12-31', true)`
 
 	if _, err := testDB.Exec(createTask1); err != nil {
-		tb.Fatal("setupTestGetTasks failed:", err)
+		tb.Fatal("setupTestGetTasksUndone failed:", err)
 	}
-	time.Sleep(time.Second)
 	if _, err := testDB.Exec(createTask2); err != nil {
-		tb.Fatal("setupTestGetTasks failed:", err)
+		tb.Fatal("setupTestGetTasksUndone failed:", err)
 	}
 }
 
-func TestGetTasks(t *testing.T) {
+func TestGetTasksUndone(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		setupTestDB()
-		setupTestGetTasks(t)
+		setupTestGetTasksUndone(t)
 
-		req, err := http.NewRequest("GET", testUrl+"/tasks", nil)
+		req, err := http.NewRequest("GET", testUrl+"/tasks/undone", nil)
 		if err != nil {
 			t.Error("Create request failed:", err)
 		}
@@ -114,37 +113,11 @@ func TestGetTasks(t *testing.T) {
 			t.Error("Status code should be 200, but", resp.StatusCode)
 		}
 
-		if len(body.Tasks) != 2 {
+		if len(body.Tasks) != 1 {
 			t.Error("Tasks should have 2 tasks, but", len(body.Tasks))
 		}
 
-		task2 := body.Tasks[0]
-		if task2.ID != 2 {
-			t.Error("Id should be 2, but", task2.ID)
-		}
-		if task2.Name != "タスク2" {
-			t.Error("Name should be タスク2, but", task2.Name)
-		}
-		if task2.Priority != 1 {
-			t.Error("Priority should be 1, but", task2.Priority)
-		}
-		if task2.Deadline != "2021-12-31" {
-			t.Error("Deadline should be 2021-12-31, but", task2.Deadline)
-		}
-		if task2.IsDone != true {
-			t.Error("IsDone should be true, but", task2.IsDone)
-		}
-		if task2.PomodoroCount != 0 {
-			t.Error("PomodoroCount should be 0, but", task2.PomodoroCount)
-		}
-		if task2.CreatedAt == "" {
-			t.Error("CreatedAt does not exist")
-		}
-		if task2.UpdatedAt == "" {
-			t.Error("UpdatedAt does not exist")
-		}
-
-		task1 := body.Tasks[1]
+		task1 := body.Tasks[0]
 		if task1.ID != 1 {
 			t.Error("Id should be 1, but", task1.ID)
 		}
@@ -192,7 +165,7 @@ func setupTestGetTasksDone(tb testing.TB) {
 }
 
 func TestGetTasksDone(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
 		setupTestDB()
 		setupTestGetTasksDone(t)
 
@@ -227,33 +200,7 @@ func TestGetTasksDone(t *testing.T) {
 			t.Error("Tasks should have 2 task, but", len(body.Tasks))
 		}
 
-		task3 := body.Tasks[0]
-		if task3.ID != 3 {
-			t.Error("Id should be 3, but", task3.ID)
-		}
-		if task3.Name != "タスク3" {
-			t.Error("Name should be タスク3, but", task3.Name)
-		}
-		if task3.Priority != 2 {
-			t.Error("Priority should be 2, but", task3.Priority)
-		}
-		if task3.Deadline != "2021-01-02" {
-			t.Error("Deadline should be 2021-01-02, but", task3.Deadline)
-		}
-		if task3.IsDone != true {
-			t.Error("IsDone should be true, but", task3.IsDone)
-		}
-		if task3.PomodoroCount != 0 {
-			t.Error("PomodoroCount should be 0, but", task3.PomodoroCount)
-		}
-		if task3.CreatedAt == "" {
-			t.Error("CreatedAt does not exist")
-		}
-		if task3.UpdatedAt == "" {
-			t.Error("UpdatedAt does not exist")
-		}
-
-		task1 := body.Tasks[1]
+		task1 := body.Tasks[0]
 		if task1.ID != 1 {
 			t.Error("Id should be 1, but", task1.ID)
 		}
@@ -279,6 +226,32 @@ func TestGetTasksDone(t *testing.T) {
 			t.Error("UpdatedAt does not exist")
 		}
 
+		task3 := body.Tasks[1]
+		if task3.ID != 3 {
+			t.Error("Id should be 3, but", task3.ID)
+		}
+		if task3.Name != "タスク3" {
+			t.Error("Name should be タスク3, but", task3.Name)
+		}
+		if task3.Priority != 2 {
+			t.Error("Priority should be 2, but", task3.Priority)
+		}
+		if task3.Deadline != "2021-01-02" {
+			t.Error("Deadline should be 2021-01-02, but", task3.Deadline)
+		}
+		if task3.IsDone != true {
+			t.Error("IsDone should be true, but", task3.IsDone)
+		}
+		if task3.PomodoroCount != 0 {
+			t.Error("PomodoroCount should be 0, but", task3.PomodoroCount)
+		}
+		if task3.CreatedAt == "" {
+			t.Error("CreatedAt does not exist")
+		}
+		if task3.UpdatedAt == "" {
+			t.Error("UpdatedAt does not exist")
+		}
+
 		shutdownTestDB()
 	})
 }
@@ -287,7 +260,7 @@ func setupTestPutTaskDone(tb testing.TB) {
 	const createTask1 = `INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク1', 0, '2021-01-01', false)`
 
 	if _, err := testDB.Exec(createTask1); err != nil {
-		tb.Fatal("setupTestGetTasks failed:", err)
+		tb.Fatal("setupTestGetTasksUndone failed:", err)
 	}
 }
 

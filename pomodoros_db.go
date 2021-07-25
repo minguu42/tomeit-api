@@ -2,9 +2,10 @@ package tomeit
 
 import (
 	"fmt"
+	"time"
 )
 
-func (db *DB) createPomodoroLog(userID, taskID int64) (int64, error) {
+func (db *DB) createPomodoroRecord(userID, taskID int64) (int64, error) {
 	const q = `INSERT INTO pomodoro_logs (user_id, task_id) VALUES (?, ?)`
 
 	r, err := db.Exec(q, userID, taskID)
@@ -20,7 +21,7 @@ func (db *DB) createPomodoroLog(userID, taskID int64) (int64, error) {
 	return id, nil
 }
 
-func (db *DB) getPomodoroLogByID(id int64) (*pomodoroLog, error) {
+func (db *DB) getPomodoroRecordByID(id int64) (*pomodoroRecord, error) {
 	const q = `
 SELECT P.created_at, U.id, U.digest_uid, T.id, T.name, T.priority, T.deadline, T.is_done, T.created_at, T.updated_at
 FROM pomodoro_logs AS P
@@ -31,7 +32,7 @@ WHERE P.id = ?
 
 	var u user
 	var t task
-	p := pomodoroLog{
+	p := pomodoroRecord{
 		id:   id,
 		user: &u,
 		task: &t,
@@ -43,16 +44,16 @@ WHERE P.id = ?
 	return &p, nil
 }
 
-func (db *DB) getPomodoroLogsByUser(user *user) ([]*pomodoroLog, error) {
+func (db *DB) getPomodoroRecordsByUser(user *user) ([]*pomodoroRecord, error) {
 	const q = `
 SELECT P.id, P.created_at, T.id, T.name, T.priority, T.deadline, T.is_done, T.created_at, T.updated_at
 FROM pomodoro_logs AS P
 JOIN tasks AS T ON P.task_id = T.id
 WHERE P.user_id = ?
-ORDER BY P.created_at DESC
+ORDER BY P.created_at
 LIMIT 30
 `
-	var ps []*pomodoroLog
+	var ps []*pomodoroRecord
 
 	rows, err := db.Query(q, user.id)
 	if err != nil {
@@ -61,7 +62,7 @@ LIMIT 30
 
 	for rows.Next() {
 		var t task
-		p := pomodoroLog{
+		p := pomodoroRecord{
 			user: user,
 		}
 		if err := rows.Scan(&p.id, &p.createdAt, &t.id, &t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
@@ -72,4 +73,19 @@ LIMIT 30
 	}
 
 	return ps, nil
+}
+
+func (db *DB) getTodayPomodoroCount(user *user) (int, error) {
+	today := time.Now().UTC().Format("2006-01-02")
+
+	const q = `
+SELECT COUNT(*) FROM pomodoro_logs
+WHERE user_id = ? AND DATE(created_at) = ?
+`
+	var c int
+
+	if err := db.QueryRow(q, user.id, today).Scan(&c); err != nil {
+		return 0, fmt.Errorf("row.Scan failed: %w", err)
+	}
+	return c, nil
 }

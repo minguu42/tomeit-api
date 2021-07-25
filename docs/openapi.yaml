@@ -24,6 +24,7 @@ paths:
       description: |
         タスクを作成する.
         タスク名, 優先度, 期限を受け取り, ユーザと結びつけてデータベースに保存する.
+        優先度, 期限は省略可能である.
       parameters:
         - $ref: "#/components/parameters/idToken"
       requestBody:
@@ -34,14 +35,19 @@ paths:
               type: object
               properties:
                 name:
+                  description: タスク名
                   type: string
                   example: タスク1
                 priority:
+                  description: タスクの優先度
                   type: integer
                   example: 2
                 deadline:
+                  description: タスクの期限
                   type: string
-                  example: 2021-06-21
+                  example: "2021-12-31"
+              required:
+                - name
       responses:
         "201":
           description: Created
@@ -49,6 +55,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+        "400":
+          description: |
+            Bad Request
+            - リクエストボディの JSON の形式が適切でない
+            - name プロパティが含まれていない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errBadRequest"
+        "401":
+          $ref: "#/components/responses/errAuthentication"
+
   /tasks/undone:
     get:
       summary: 未完了タスク一覧取得 API
@@ -87,9 +105,12 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
   /tasks/done/{taskID}:
     put:
       summary: タスク完了 API
@@ -151,7 +172,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  pomodoroLogs:
+                  pomodoroRecords:
                     type: array
                     items:
                       $ref: "#/components/schemas/PomodoroRecord"
@@ -214,6 +235,19 @@ components:
         type: integer
         example: 1
   schemas:
+    errBadRequest:
+      type: object
+      properties:
+        status:
+          description: レスポンスの説明
+          type: string
+          example: Request is wrong
+        error:
+          description: エラーの説明
+          type: string
+          example: some error message
+      required:
+        - status
     Task:
       type: object
       properties:
@@ -241,6 +275,15 @@ components:
         updatedAt:
           type: string
           example: "2021-06-23T12:21:49Z"
+      required:
+        - id
+        - name
+        - priority
+        - deadline
+        - isDone
+        - pomodoroCount
+        - createdAt
+        - updatedAt
     PomodoroRecord:
       type: object
       properties:
@@ -252,3 +295,23 @@ components:
         createdAt:
           type: string
           example: "2021-06-23T12:21:49Z"
+  responses:
+    errAuthentication:
+      description: |
+        Unauthorized
+        - Authorization ヘッダの値が間違っている
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                description: レスポンスの説明
+                type: string
+                example: User authentication failed
+              error:
+                description: エラーの説明
+                type: string
+                example: some error message
+            required:
+              - status

@@ -13,14 +13,15 @@ type dbInterface interface {
 
 	createTask(userID int64, name string, priority int, deadline time.Time) (int64, error)
 	getTaskByID(id int64) (*task, error)
-	getTasksByUser(user *user) ([]*task, error)
+	getUndoneTasksByUser(user *user) ([]*task, error)
 	getDoneTasksByUser(user *user) ([]*task, error)
 	getPomodoroCountByID(id int64) (int, error)
 	doneTask(taskID int64) error
 
-	createPomodoroLog(userID, taskID int64) (int64, error)
-	getPomodoroLogByID(id int64) (*pomodoroLog, error)
-	getPomodoroLogsByUser(user *user) ([]*pomodoroLog, error)
+	createPomodoroRecord(userID, taskID int64) (int64, error)
+	getPomodoroRecordByID(id int64) (*pomodoroRecord, error)
+	getPomodoroRecordsByUser(user *user) ([]*pomodoroRecord, error)
+	getTodayPomodoroCount(user *user) (int, error)
 }
 
 type DB struct {

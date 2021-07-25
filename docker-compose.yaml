@@ -28,7 +28,7 @@ services:
     container_name: tomeit-api-db-dev
     restart: always
     volumes:
-      - data-test:/var/lib/mysql
+      - data-dev:/var/lib/mysql
       - ./build/setup.sql:/docker-entrypoint-initdb.d/setup.sql
   db-test:
     image: mysql:8.0

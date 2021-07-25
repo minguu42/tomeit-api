@@ -1,4 +1,12 @@
-.PHONY:test
+.PHONY: dev
+dev:
+	@docker compose up api
+
+.PHONY: down
+down:
+	@docker compose down
+
+.PHONY: test
 test:
 	@docker compose up -d db-test
 	-go test

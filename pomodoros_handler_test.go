@@ -141,19 +141,19 @@ func TestGetPomodoroRecords(t *testing.T) {
 			t.Error("PomodoroRecords should have 2 pomodoroRecord, but", len(body.PomodoroRecords))
 		}
 
-		pomodoroRecord2 := body.PomodoroRecords[0]
-		if pomodoroRecord2.ID != 2 {
-			t.Error("ID should be 2, but", pomodoroRecord2.ID)
-		}
-		if pomodoroRecord2.CreatedAt == "" {
-			t.Error("CreatedAt does not exist")
-		}
-
-		pomodoroRecord1 := body.PomodoroRecords[1]
+		pomodoroRecord1 := body.PomodoroRecords[0]
 		if pomodoroRecord1.ID != 1 {
 			t.Error("ID should be 1, but", pomodoroRecord1.ID)
 		}
 		if pomodoroRecord1.CreatedAt == "" {
+			t.Error("CreatedAt does not exist")
+		}
+
+		pomodoroRecord2 := body.PomodoroRecords[1]
+		if pomodoroRecord2.ID != 2 {
+			t.Error("ID should be 2, but", pomodoroRecord2.ID)
+		}
+		if pomodoroRecord2.CreatedAt == "" {
 			t.Error("CreatedAt does not exist")
 		}
 

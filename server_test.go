@@ -39,11 +39,13 @@ func TestMain(m *testing.M) {
 		})
 	})
 	r.Route("/pomodoros", func(r chi.Router) {
-		r.Route("/logs", func(r chi.Router) {
-			r.Post("/", PostPomodoroLog(testDB))
-			r.Get("/", GetPomodoroLogs(testDB))
+		r.Route("/records", func(r chi.Router) {
+			r.Post("/", PostPomodoroRecord(testDB))
+			r.Get("/", GetPomodoroRecords(testDB))
+			r.Get("/count/today", GetTodayPomodoroCount(testDB))
 		})
-		r.Get("/rest/count", GetRestCount)
+
+		r.Get("/rest-count", GetRestCount)
 	})
 
 	ts := httptest.NewServer(r)

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func setupTestPostPomodoroLog(tb testing.TB) {
+func setupTestPostPomodoroRecord(tb testing.TB) {
 	const createTask1 = `INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク1', 0, '2021-01-01', false)`
 
 	if _, err := testDB.Exec(createTask1); err != nil {
@@ -17,13 +17,13 @@ func setupTestPostPomodoroLog(tb testing.TB) {
 	}
 }
 
-func TestPostPomodoroLog(t *testing.T) {
+func TestPostPomodoroRecord(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		setupTestDB()
-		setupTestPostPomodoroLog(t)
+		setupTestPostPomodoroRecord(t)
 
 		reqBody := strings.NewReader(`{"taskID": 1 }`)
-		req, err := http.NewRequest("POST", testUrl+"/pomodoros/logs", reqBody)
+		req, err := http.NewRequest("POST", testUrl+"/pomodoros/records", reqBody)
 		if err != nil {
 			t.Error("Create request failed:", err)
 		}
@@ -41,7 +41,7 @@ func TestPostPomodoroLog(t *testing.T) {
 			t.Error("Close response failed:", err)
 		}
 
-		var body pomodoroLogResponse
+		var body pomodoroRecordResponse
 		if err := json.Unmarshal(bytes, &body); err != nil {
 			t.Error("Unmarshal json failed:", err)
 		}
@@ -88,7 +88,7 @@ func TestPostPomodoroLog(t *testing.T) {
 	})
 }
 
-func setupTestGetPomodoroLogs(tb testing.TB) {
+func setupTestGetPomodoroRecords(tb testing.TB) {
 	const createTask1 = `INSERT INTO tasks (user_id, name, priority, deadline, is_done) VALUES (1, 'タスク1', 0, '2021-01-01', false)`
 	const createPomodoroLog1 = `INSERT INTO pomodoro_logs (user_id, task_id) VALUES (1, 1)`
 	const createPomodoroLog2 = `INSERT INTO pomodoro_logs (user_id, task_id) VALUES (1, 1)`
@@ -105,12 +105,12 @@ func setupTestGetPomodoroLogs(tb testing.TB) {
 	}
 }
 
-func TestGetPomodoroLogs(t *testing.T) {
+func TestGetPomodoroRecords(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		setupTestDB()
-		setupTestGetPomodoroLogs(t)
+		setupTestGetPomodoroRecords(t)
 
-		req, err := http.NewRequest("GET", testUrl+"/pomodoros/logs", nil)
+		req, err := http.NewRequest("GET", testUrl+"/pomodoros/records", nil)
 		if err != nil {
 			t.Error("Create request failed:", err)
 		}
@@ -128,7 +128,7 @@ func TestGetPomodoroLogs(t *testing.T) {
 			t.Error("Close response failed:", err)
 		}
 
-		var body pomodoroLogsResponse
+		var body pomodoroRecordsResponse
 		if err := json.Unmarshal(bytes, &body); err != nil {
 			t.Error("Unmarshal json failed:", err)
 		}
@@ -137,23 +137,23 @@ func TestGetPomodoroLogs(t *testing.T) {
 			t.Error("Status code should be 200, but", resp.StatusCode)
 		}
 
-		if len(body.PomodoroLogs) != 2 {
-			t.Error("PomodoroLogs should have 2 pomodoroLog, but", len(body.PomodoroLogs))
+		if len(body.PomodoroRecords) != 2 {
+			t.Error("PomodoroRecords should have 2 pomodoroRecord, but", len(body.PomodoroRecords))
 		}
 
-		pomodoroLog2 := body.PomodoroLogs[0]
-		if pomodoroLog2.ID != 2 {
-			t.Error("ID should be 2, but", pomodoroLog2.ID)
+		pomodoroRecord2 := body.PomodoroRecords[0]
+		if pomodoroRecord2.ID != 2 {
+			t.Error("ID should be 2, but", pomodoroRecord2.ID)
 		}
-		if pomodoroLog2.CreatedAt == "" {
+		if pomodoroRecord2.CreatedAt == "" {
 			t.Error("CreatedAt does not exist")
 		}
 
-		pomodoroLog1 := body.PomodoroLogs[1]
-		if pomodoroLog1.ID != 1 {
-			t.Error("ID should be 1, but", pomodoroLog1.ID)
+		pomodoroRecord1 := body.PomodoroRecords[1]
+		if pomodoroRecord1.ID != 1 {
+			t.Error("ID should be 1, but", pomodoroRecord1.ID)
 		}
-		if pomodoroLog1.CreatedAt == "" {
+		if pomodoroRecord1.CreatedAt == "" {
 			t.Error("CreatedAt does not exist")
 		}
 
@@ -165,7 +165,7 @@ func TestGetRestCount(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		setupTestDB()
 
-		req, err := http.NewRequest("GET", testUrl+"/pomodoros/rest/count", nil)
+		req, err := http.NewRequest("GET", testUrl+"/pomodoros/rest-count", nil)
 		if err != nil {
 			t.Error("Create request failed:", err)
 		}

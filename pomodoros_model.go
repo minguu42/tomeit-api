@@ -2,7 +2,7 @@ package tomeit
 
 import "time"
 
-type pomodoroLog struct {
+type pomodoroRecord struct {
 	id        int64
 	user      *user
 	task      *task

@@ -48,12 +48,13 @@ func main() {
 		})
 	})
 	r.Route("/pomodoros", func(r chi.Router) {
-		r.Route("/logs", func(r chi.Router) {
-			r.Post("/", tomeit.PostPomodoroLog(db))
-			r.Get("/", tomeit.GetPomodoroLogs(db))
+		r.Route("/records", func(r chi.Router) {
+			r.Post("/", tomeit.PostPomodoroRecord(db))
+			r.Get("/", tomeit.GetPomodoroRecords(db))
+			r.Get("/count/today", tomeit.GetTodayPomodoroCount(db))
 		})
 
-		r.Get("/rest/count", tomeit.GetRestCount)
+		r.Get("/rest-count", tomeit.GetRestCount)
 	})
 
 	port := os.Getenv("PORT")

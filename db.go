@@ -18,9 +18,10 @@ type dbInterface interface {
 	getPomodoroCountByID(id int64) (int, error)
 	doneTask(taskID int64) error
 
-	createPomodoroLog(userID, taskID int64) (int64, error)
-	getPomodoroLogByID(id int64) (*pomodoroLog, error)
-	getPomodoroLogsByUser(user *user) ([]*pomodoroLog, error)
+	createPomodoroRecord(userID, taskID int64) (int64, error)
+	getPomodoroRecordByID(id int64) (*pomodoroRecord, error)
+	getPomodoroRecordsByUser(user *user) ([]*pomodoroRecord, error)
+	getTodayPomodoroCount(user *user) (int, error)
 }
 
 type DB struct {

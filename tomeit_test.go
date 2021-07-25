@@ -30,7 +30,8 @@ func TestMain(m *testing.M) {
 
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", PostTask(testDB))
-		r.Get("/", GetTasks(testDB))
+
+		r.Get("/undone", GetTasksUndone(testDB))
 
 		r.Route("/done", func(r chi.Router) {
 			r.Get("/", GetTasksDone(testDB))

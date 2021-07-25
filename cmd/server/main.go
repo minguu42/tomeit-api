@@ -39,7 +39,8 @@ func main() {
 
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", tomeit.PostTask(db))
-		r.Get("/", tomeit.GetTasks(db))
+
+		r.Get("/undone", tomeit.GetTasksUndone(db))
 
 		r.Route("/done", func(r chi.Router) {
 			r.Get("/", tomeit.GetTasksDone(db))
@@ -51,6 +52,7 @@ func main() {
 			r.Post("/", tomeit.PostPomodoroLog(db))
 			r.Get("/", tomeit.GetPomodoroLogs(db))
 		})
+
 		r.Get("/rest/count", tomeit.GetRestCount)
 	})
 

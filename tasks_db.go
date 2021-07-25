@@ -39,11 +39,11 @@ WHERE T.id = ?
 	return &t, nil
 }
 
-func (db *DB) getTasksByUser(user *user) ([]*task, error) {
+func (db *DB) getUndoneTasksByUser(user *user) ([]*task, error) {
 	const q = `
 SELECT id, name, priority, deadline, is_done, created_at, updated_at FROM tasks
-WHERE user_id = ?
-ORDER BY updated_at DESC
+WHERE user_id = ? AND is_done = FALSE
+ORDER BY updated_at
 LIMIT 30
 `
 	var ts []*task
@@ -69,7 +69,7 @@ func (db *DB) getDoneTasksByUser(user *user) ([]*task, error) {
 	const q = `
 SELECT id, name, priority, deadline, is_done, created_at, updated_at FROM tasks
 WHERE user_id = ? AND is_done = TRUE
-ORDER BY updated_at DESC
+ORDER BY updated_at
 LIMIT 30
 `
 	var tasks []*task

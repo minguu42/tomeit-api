@@ -82,14 +82,14 @@ func PostTask(db dbInterface) http.HandlerFunc {
 		data := &taskRequest{}
 		if err := render.Bind(r, data); err != nil {
 			log.Println("bind failed:", err)
-			_ = render.Render(w, r, errInvalidRequest(err))
+			_ = render.Render(w, r, errBadRequest(err))
 			return
 		}
 
 		deadline, err := time.Parse("2006-01-02", data.Deadline)
 		if err != nil {
 			log.Println("parse failed:", err)
-			_ = render.Render(w, r, errInvalidRequest(err))
+			_ = render.Render(w, r, errBadRequest(err))
 			return
 		}
 
@@ -98,14 +98,14 @@ func PostTask(db dbInterface) http.HandlerFunc {
 		taskID, err := db.createTask(user.id, data.Name, data.Priority, deadline)
 		if err != nil {
 			log.Println("createTask failed:", err)
-			_ = render.Render(w, r, errInvalidRequest(err))
+			_ = render.Render(w, r, errBadRequest(err))
 			return
 		}
 
 		task, err := db.getTaskByID(taskID)
 		if err != nil {
 			log.Println("getTaskByID failed:", err)
-			_ = render.Render(w, r, errInvalidRequest(err))
+			_ = render.Render(w, r, errBadRequest(err))
 			return
 		}
 
@@ -118,13 +118,13 @@ func PostTask(db dbInterface) http.HandlerFunc {
 	}
 }
 
-func GetTasks(db dbInterface) http.HandlerFunc {
+func GetTasksUndone(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := r.Context().Value(userKey).(*user)
 
-		tasks, err := db.getTasksByUser(user)
+		tasks, err := db.getUndoneTasksByUser(user)
 		if err != nil {
-			log.Println("getTasksByUser failed:", err)
+			log.Println("getUndoneTasksByUser failed:", err)
 			_ = render.Render(w, r, errNotFound())
 			return
 		}
@@ -143,7 +143,7 @@ func GetTasksDone(db dbInterface) http.HandlerFunc {
 
 		tasks, err := db.getDoneTasksByUser(user)
 		if err != nil {
-			log.Println("getTasksByUser failed:", err)
+			log.Println("getUndoneTasksByUser failed:", err)
 			_ = render.Render(w, r, errNotFound())
 			return
 		}
@@ -167,27 +167,27 @@ func PutTaskDone(db dbInterface) http.HandlerFunc {
 		taskID, err := strconv.ParseInt(taskIDStr, 10, 64)
 		if err != nil {
 			log.Println("parseInt failed:", err)
-			_ = render.Render(w, r, errInvalidRequest(err))
+			_ = render.Render(w, r, errBadRequest(err))
 			return
 		}
 
 		user := r.Context().Value(userKey).(*user)
 
 		if !hasUserTask(db, taskID, user) {
-			_ = render.Render(w, r, errAuthenticate(errors.New("you do not have this task")))
+			_ = render.Render(w, r, errAuthentication(errors.New("you do not have this task")))
 			return
 		}
 
 		if err := db.doneTask(taskID); err != nil {
 			log.Println("doneTask failed:", err)
-			_ = render.Render(w, r, errInvalidRequest(err))
+			_ = render.Render(w, r, errBadRequest(err))
 			return
 		}
 
 		task, err := db.getTaskByID(taskID)
 		if err != nil {
 			log.Println("getTaskByID failed:", err)
-			_ = render.Render(w, r, errInvalidRequest(err))
+			_ = render.Render(w, r, errBadRequest(err))
 			return
 		}
 

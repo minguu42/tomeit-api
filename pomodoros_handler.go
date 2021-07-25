@@ -60,7 +60,7 @@ func PostPomodoroLog(db dbInterface) http.HandlerFunc {
 		data := &pomodoroLogRequest{}
 		if err := render.Bind(r, data); err != nil {
 			log.Println("bind failed:", err)
-			_ = render.Render(w, r, errInvalidRequest(err))
+			_ = render.Render(w, r, errBadRequest(err))
 			return
 		}
 
@@ -69,14 +69,14 @@ func PostPomodoroLog(db dbInterface) http.HandlerFunc {
 		pomodoroLogID, err := db.createPomodoroLog(user.id, data.TaskID)
 		if err != nil {
 			log.Println("createPomodoroLog failed:", err)
-			_ = render.Render(w, r, errInvalidRequest(err))
+			_ = render.Render(w, r, errBadRequest(err))
 			return
 		}
 
 		pomodoroLog, err := db.getPomodoroLogByID(pomodoroLogID)
 		if err != nil {
 			log.Println("getPomodoroLogByID failed:", err)
-			_ = render.Render(w, r, errInvalidRequest(err))
+			_ = render.Render(w, r, errBadRequest(err))
 			return
 		}
 

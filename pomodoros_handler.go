@@ -142,7 +142,7 @@ func GetTodayPomodoroCount(db dbInterface) http.HandlerFunc {
 }
 
 type restCountResponse struct {
-	CountToNextRest int `json:"countToNextRest"`
+	RestCount int `json:"restCount"`
 }
 
 func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
@@ -152,7 +152,7 @@ func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error
 func GetRestCount(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(userKey).(*user)
 
-	if err := render.Render(w, r, &restCountResponse{CountToNextRest: user.restCount}); err != nil {
+	if err := render.Render(w, r, &restCountResponse{RestCount: user.restCount}); err != nil {
 		log.Println("render failed:", err)
 		_ = render.Render(w, r, errRender(err))
 		return

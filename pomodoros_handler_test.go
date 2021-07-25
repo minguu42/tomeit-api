@@ -192,8 +192,8 @@ func TestGetRestCount(t *testing.T) {
 			t.Error("Status code should be 200, but", resp.StatusCode)
 		}
 
-		if body.CountToNextRest != 4 {
-			t.Error("CountToNextRest should be 4, but", body.CountToNextRest)
+		if body.RestCount != 4 {
+			t.Error("restCount should be 4, but", body.RestCount)
 		}
 
 		shutdownTestDB()

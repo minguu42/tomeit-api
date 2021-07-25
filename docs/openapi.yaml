@@ -105,9 +105,12 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
   /tasks/done/{taskID}:
     put:
       summary: タスク完了 API
@@ -169,7 +172,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  pomodoroLogs:
+                  pomodoroRecords:
                     type: array
                     items:
                       $ref: "#/components/schemas/PomodoroRecord"

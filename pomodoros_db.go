@@ -50,7 +50,7 @@ SELECT P.id, P.created_at, T.id, T.name, T.priority, T.deadline, T.is_done, T.cr
 FROM pomodoro_logs AS P
 JOIN tasks AS T ON P.task_id = T.id
 WHERE P.user_id = ?
-ORDER BY P.created_at DESC
+ORDER BY P.created_at
 LIMIT 30
 `
 	var ps []*pomodoroRecord

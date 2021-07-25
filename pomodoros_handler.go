@@ -43,9 +43,9 @@ type pomodoroRecordsResponse struct {
 	PomodoroRecords []*pomodoroRecordResponse `json:"pomodoroRecords"`
 }
 
-func newPomodoroRecordsResponse(pomodoroLogs []*pomodoroRecord, db dbInterface) *pomodoroRecordsResponse {
+func newPomodoroRecordsResponse(pomodoroRecords []*pomodoroRecord, db dbInterface) *pomodoroRecordsResponse {
 	var ps []*pomodoroRecordResponse
-	for _, p := range pomodoroLogs {
+	for _, p := range pomodoroRecords {
 		ps = append(ps, newPomodoroRecordResponse(p, db))
 	}
 	return &pomodoroRecordsResponse{PomodoroRecords: ps}

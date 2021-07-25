@@ -4,6 +4,9 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -58,47 +61,25 @@ func TestMain(m *testing.M) {
 }
 
 func setupTestDB() {
-	const createUsersTable = `
-CREATE TABLE IF NOT EXISTS users (
-    id              INT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    digest_uid      CHAR(64) NOT NULL,
-    rest_count      INT      DEFAULT 4 NOT NULL CHECK ( 1 <= rest_count AND rest_count <= 4 )
-)
-`
-	const createTasksTable = `
-CREATE TABLE IF NOT EXISTS tasks (
-    id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    user_id    INT          NOT NULL,
-    name       VARCHAR(120) NOT NULL,
-    priority   INT          DEFAULT 0 NOT NULL CHECK ( 0 <= priority AND priority <= 3 ),
-    deadline   DATE         DEFAULT ('0001-01-01') NOT NULL,
-    is_done    BOOLEAN      DEFAULT FALSE NOT NULL,
-    created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-)
-`
-	const createPomodoroLogsTable = `
-CREATE TABLE IF NOT EXISTS pomodoro_logs (
-    id         INT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    user_id    INT       NOT NULL,
-    task_id    INT       NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (task_id) REFERENCES tasks(id)
-)
-`
+	file, err := os.ReadFile(filepath.Join(".", "build", "setup.sql"))
+	if err != nil {
+		log.Fatal("os.ReadFile failed:", err)
+	}
+	queries := strings.Split(string(file), ";")
+
+	for _, query := range queries {
+		if query == "" {
+			break
+		}
+
+		_, err := testDB.Exec(query)
+		if err != nil {
+			log.Fatal("db.Exec failed:", err)
+		}
+	}
+
 	const createTestUser = `INSERT INTO users (digest_uid) VALUES ('a2c4ba85c41f186283948b1a54efacea04cb2d3f54a88d5826a7e6a917b28c5a')`
 
-	if _, err := testDB.Exec(createUsersTable); err != nil {
-		log.Fatalln("createUsersTable failed:", err)
-	}
-	if _, err := testDB.Exec(createTasksTable); err != nil {
-		log.Fatalln("createTasksTable failed:", err)
-	}
-	if _, err := testDB.Exec(createPomodoroLogsTable); err != nil {
-		log.Fatalln("createPomodoroLogsTable failed:", err)
-	}
 	if _, err := testDB.Exec(createTestUser); err != nil {
 		log.Fatalln("createTestUser failed:", err)
 	}

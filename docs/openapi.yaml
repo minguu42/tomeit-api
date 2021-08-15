@@ -1,13 +1,13 @@
-openapi: 3.0.0
+openapi: 3.0.3
 
 info:
-  version: 0.1.0
   title: tomeit API 仕様書
   description: tomeit の REST API の仕様書である.
+  version: 0.2.0
 
 servers:
-  - description: ローカルの開発環境
-    url: http://localhost:8080
+  - url: http://localhost:8080/v0
+    description: ローカルの開発用 API サーバ
 
 tags:
   - name: tasks
@@ -18,15 +18,97 @@ tags:
 paths:
   /tasks:
     post:
+      tags:
+        - tasks
       summary: タスク作成 API
+      description: タスクを作成する
+      parameters:
+        - $ref: "#/components/parameters/id-token"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  example: タスク1
+                expectedPomodoroNumber:
+                  type: integer
+                  example: 4
+                dueOn:
+                  type: string
+                  example: "2021-12-31T00:00:00Z"
+      responses:
+        "201":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/AuthenticationError"
+        "405":
+          $ref: "#/components/responses/MethodError"
+    get:
+      tags:
+        - tasks
+      summary: タスク一覧取得 API
+      description: |
+        タスクを一覧で取得する
+
+        作成順で最大30件まで取得する.
+        クエリパラメータの is-completed, completed-at で絞り込みが可能である.
+        どちらのクエリパラメータも省略可能であり, 両方とも指定しても良い.
+      parameters:
+        - $ref: "#/components/parameters/id-token"
+        - name: is-completed
+          in: "query"
+          schema:
+            type: boolean
+        - name: completed-at
+          in: "query"
+          schema:
+            type: string
+            example: "2021-01-01T00:00:00Z"
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - tasks
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/AuthenticationError"
+        "405":
+          $ref: "#/components/responses/MethodError"
+  /tasks/{task-id}:
+    patch:
+      summary: タスク一部更新 API
       tags:
         - tasks
       description: |
-        タスクを作成する.
-        タスク名, 優先度, 期限を受け取り, ユーザと結びつけてデータベースに保存する.
-        優先度, 期限は省略可能である.
+        タスクの一部情報を更新する
+
+        task-id で更新する一意のタスクを特定する.
+        現在は isCompleted の値のみ変更できる.
       parameters:
-        - $ref: "#/components/parameters/idToken"
+        - $ref: "#/components/parameters/id-token"
+        - $ref: "#/components/parameters/task-id"
       requestBody:
         required: true
         content:
@@ -34,110 +116,33 @@ paths:
             schema:
               type: object
               properties:
-                name:
-                  description: タスク名
-                  type: string
-                  example: タスク1
-                priority:
-                  description: タスクの優先度
-                  type: integer
-                  example: 2
-                deadline:
-                  description: タスクの期限
-                  type: string
-                  example: "2021-12-31"
-              required:
-                - name
+                isCompleted:
+                  type: boolean
+                  example: true
       responses:
-        "201":
-          description: Created
+        "200":
+          description: 成功
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
         "400":
-          description: |
-            Bad Request
-            - リクエストボディの JSON の形式が適切でない
-            - name プロパティが含まれていない
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/errBadRequest"
+          $ref: "#/components/responses/BadRequestError"
         "401":
-          $ref: "#/components/responses/errAuthentication"
-
-  /tasks/undone:
-    get:
-      summary: 未完了タスク一覧取得 API
-      tags:
-        - tasks
-      description: |
-        タスク一覧を取得する.
-        更新順で最大30個取得する.
-      parameters:
-        - $ref: "#/components/parameters/idToken"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  tasks:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Task"
-  /tasks/done:
-    get:
-      summary: 完了済みタスク一覧取得 API
-      tags:
-        - tasks
-      description: |
-        完了済みタスクを取得する.
-        更新順で最大30個取得する.
-      parameters:
-        - $ref: "#/components/parameters/idToken"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  tasks:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Task"
-  /tasks/done/{taskID}:
-    put:
-      summary: タスク完了 API
-      tags:
-        - tasks
-      description: |
-        タスクを完了する.
-        taskID で一意のタスクを指定する.
-      parameters:
-        - $ref: "#/components/parameters/taskID"
-        - $ref: "#/components/parameters/idToken"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Task"
+          $ref: "#/components/responses/AuthenticationError"
+        "403":
+          $ref: "#/components/responses/AuthorizationError"
+        "405":
+          $ref: "#/components/responses/MethodError"
   /pomodoros/records:
     post:
       summary: ポモドーロ記録 API
       tags:
         - pomodoros
       description: |
-        ポモドーロの実行を記録する.
+        実行したポモドーロを記録する
       parameters:
-        - $ref: "#/components/parameters/idToken"
+        - $ref: "#/components/parameters/id-token"
       requestBody:
         required: true
         content:
@@ -155,163 +160,204 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PomodoroRecord"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/AuthorizationError"
+        "405":
+          $ref: "#/components/responses/MethodError"
     get:
       summary: ポモドーロ記録一覧取得 API
       tags:
         - pomodoros
       description: |
-        ポモドーロの実行記録を一覧で取得する.
+        ポモドーロ記録を一覧で取得する
+
         更新順で最大30件まで取得する.
       parameters:
-        - $ref: "#/components/parameters/idToken"
+        - $ref: "#/components/parameters/id-token"
+        - name: completed-at
+          in: "query"
+          description: completedAt でポモドーロ記録を絞り込む
+          schema:
+            description: ポモドーロを実行した時間
+            type: string
+            example: "2021-01-01T00:00:00Z"
       responses:
         "200":
-          description: OK
+          description: 成功
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - pomodoroRecords
                 properties:
                   pomodoroRecords:
                     type: array
                     items:
                       $ref: "#/components/schemas/PomodoroRecord"
-  /pomodoros/records/count/today:
-    get:
-      summary: 今日実行したポモドーロ数取得 API
-      tags:
-        - pomodoros
-      description: |
-        今日実行したポモドーロの数を取得する.
-      parameters:
-        - $ref: "#/components/parameters/idToken"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  todayPomodoroCount:
-                    type: integer
-                    example: 8
-  /pomodoros/rest-count:
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/AuthenticationError"
+        "405":
+          $ref: "#/components/responses/MethodError"
+  /pomodoros/next-rest-count:
     get:
       summary: 次の15分休憩までのカウント取得 API
       tags:
         - pomodoros
       description: |
-        次の15分休憩までの実行するポモドーロの数を取得する.
+        次の15分休憩までの実行する必要のあるポモドーロの数を取得する
       parameters:
-        - $ref: "#/components/parameters/idToken"
+        - $ref: "#/components/parameters/id-token"
       responses:
         "200":
-          description: OK
+          description: 成功
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  restCount:
+                  nextRestCount:
                     type: integer
                     example: 3
+        "401":
+          $ref: "#/components/responses/AuthenticationError"
+        "405":
+          $ref: "#/components/responses/MethodError"
 
 components:
-  parameters:
-    idToken:
-      name: Authorization
-      description: ユーザ固有の idToken
-      in: header
-      required: true
-      schema:
-        type: string
-    taskID:
-      name: taskID
-      description: タスク番号
-      in: path
-      required: true
-      schema:
-        type: integer
-        example: 1
   schemas:
-    errBadRequest:
+    Task:
       type: object
+      required:
+        - id
+        - title
+        - expectedPomodoroNumber
+        - actualPomodoroNumber
+        - dueOn
+        - isCompleted
+        - completedAt
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          description: タスク ID
+          type: integer
+          minimum: 1
+          example: 1
+        title:
+          description: タスクタイトル
+          type: string
+          example: "タスク1"
+        expectedPomodoroNumber:
+          description: 予測ポモドーロ数
+          type: integer
+          example: 4
+        actualPomodoroNumber:
+          description: 実際のポモドーロ数
+          type: integer
+          example: 2
+        dueOn:
+          description: タスクの期限
+          type: string
+          example: "2021-01-01T00:00:00Z"
+        isCompleted:
+          description: タスクを完了したかどうか
+          type: boolean
+        completedAt:
+          description: |
+            タスクを完了した時刻
+
+            タスクが完了済みでない場合は 0001-01-01T00:00:00Z を返す.
+          type: string
+          example: "2021-01-01T00:00:00Z"
+        createdAt:
+          description: タスクを作成した時刻
+          type: string
+          example: "2021-01-01T00:00:00Z"
+        updatedAt:
+          description: タスクを更新した時刻
+          type: string
+          example: "2021-01-01T00:00:00Z"
+    PomodoroRecord:
+      type: object
+      required:
+        - id
+        - task
+        - completedAt
+      properties:
+        id:
+          description: ポモドーロ記録 ID
+          type: integer
+          minimum: 1
+          example: 1
+        task:
+          $ref: "#/components/schemas/Task"
+        completedAt:
+          description: ポモドーロを完了した時刻
+          type: string
+          example: "2021-01-01T00:00:00Z"
+    Error:
+      type: object
+      required:
+        - status
+        - error
       properties:
         status:
           description: レスポンスの説明
           type: string
-          example: Request is wrong
+          example: some response message
         error:
           description: エラーの説明
           type: string
           example: some error message
-      required:
-        - status
-    Task:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        name:
-          type: string
-          example: "タスク1"
-        priority:
-          type: integer
-          example: 2
-        deadline:
-          type: string
-          example: "2021-06-21"
-        isDone:
-          type: boolean
-          example: false
-        pomodoroCount:
-          type: integer
-          example: 0
-        createdAt:
-          type: string
-          example: "2021-06-23T12:21:49Z"
-        updatedAt:
-          type: string
-          example: "2021-06-23T12:21:49Z"
-      required:
-        - id
-        - name
-        - priority
-        - deadline
-        - isDone
-        - pomodoroCount
-        - createdAt
-        - updatedAt
-    PomodoroRecord:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        task:
-          $ref: "#/components/schemas/Task"
-        createdAt:
-          type: string
-          example: "2021-06-23T12:21:49Z"
   responses:
-    errAuthentication:
-      description: |
-        Unauthorized
-        - Authorization ヘッダの値が間違っている
+    BadRequestError:
+      description: リクエストが間違っている
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              status:
-                description: レスポンスの説明
-                type: string
-                example: User authentication failed
-              error:
-                description: エラーの説明
-                type: string
-                example: some error message
-            required:
-              - status
+            $ref: "#/components/schemas/Error"
+    AuthenticationError:
+      description: ユーザが認証できない
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    AuthorizationError:
+      description: リソースへのアクセス権限がない
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    MethodError:
+      description: リクエストメソッドが間違っている
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    InternalServerError:
+      description: サーバ側で不明なエラーが発生した
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  parameters:
+    id-token:
+      name: Authorization
+      in: header
+      description: ユーザ識別用の Firebase ID トークン
+      required: true
+      schema:
+        type: string
+    task-id:
+      name: task-id
+      in: path
+      description: タスクの一意の番号
+      required: true
+      schema:
+        type: integer
+        minimum: 1

@@ -23,7 +23,7 @@ func (db *DB) createPomodoroRecord(userID, taskID int64) (int64, error) {
 
 func (db *DB) getPomodoroRecordByID(id int64) (*pomodoroRecord, error) {
 	const q = `
-SELECT P.created_at, U.id, U.digest_uid, T.id, T.name, T.priority, T.deadline, T.is_done, T.created_at, T.updated_at
+SELECT P.created_at, U.id, U.digest_uid, T.id, T.title, T.expectedPomodoroNumber, T.dueOn, T.is_done, T.created_at, T.updated_at
 FROM pomodoro_logs AS P
 JOIN users AS U ON P.user_id = U.id
 JOIN tasks AS T ON P.task_id = T.id
@@ -37,7 +37,7 @@ WHERE P.id = ?
 		user: &u,
 		task: &t,
 	}
-	if err := db.QueryRow(q, id).Scan(&p.createdAt, &u.id, &u.digestUID, &t.id, &t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
+	if err := db.QueryRow(q, id).Scan(&p.createdAt, &u.id, &u.digestUID, &t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {
 		return nil, fmt.Errorf("scan failed: %w", err)
 	}
 
@@ -46,7 +46,7 @@ WHERE P.id = ?
 
 func (db *DB) getPomodoroRecordsByUser(user *user) ([]*pomodoroRecord, error) {
 	const q = `
-SELECT P.id, P.created_at, T.id, T.name, T.priority, T.deadline, T.is_done, T.created_at, T.updated_at
+SELECT P.id, P.created_at, T.id, T.title, T.expectedPomodoroNumber, T.dueOn, T.is_done, T.created_at, T.updated_at
 FROM pomodoro_logs AS P
 JOIN tasks AS T ON P.task_id = T.id
 WHERE P.user_id = ?
@@ -65,7 +65,7 @@ LIMIT 30
 		p := pomodoroRecord{
 			user: user,
 		}
-		if err := rows.Scan(&p.id, &p.createdAt, &t.id, &t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
+		if err := rows.Scan(&p.id, &p.createdAt, &t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
 		p.task = &t

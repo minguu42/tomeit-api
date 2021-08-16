@@ -60,7 +60,7 @@ func PostPomodoroRecord(db dbInterface) http.HandlerFunc {
 		data := &pomodoroRecordRequest{}
 		if err := render.Bind(r, data); err != nil {
 			log.Println("bind failed:", err)
-			_ = render.Render(w, r, errBadRequest(err))
+			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
@@ -69,27 +69,27 @@ func PostPomodoroRecord(db dbInterface) http.HandlerFunc {
 		pomodoroLogID, err := db.createPomodoroRecord(user.id, data.TaskID)
 		if err != nil {
 			log.Println("createPomodoroRecord failed:", err)
-			_ = render.Render(w, r, errBadRequest(err))
+			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
 		pomodoroLog, err := db.getPomodoroRecordByID(pomodoroLogID)
 		if err != nil {
 			log.Println("getPomodoroRecordByID failed:", err)
-			_ = render.Render(w, r, errBadRequest(err))
+			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
 		if err := db.decrementRestCount(user); err != nil {
 			log.Println("decrementRestCount failed:", err)
-			_ = render.Render(w, r, errUnexpectedEvent(err))
+			_ = render.Render(w, r, internalServerError(err))
 			return
 		}
 
 		render.Status(r, http.StatusCreated)
 		if err = render.Render(w, r, newPomodoroRecordResponse(pomodoroLog, db)); err != nil {
 			log.Println("render failed:", err)
-			_ = render.Render(w, r, errRender(err))
+			_ = render.Render(w, r, renderError(err))
 			return
 		}
 	}
@@ -108,7 +108,7 @@ func GetPomodoroRecords(db dbInterface) http.HandlerFunc {
 
 		if err := render.Render(w, r, newPomodoroRecordsResponse(pomodoroLogs, db)); err != nil {
 			log.Println("render failed:", err)
-			_ = render.Render(w, r, errRender(err))
+			_ = render.Render(w, r, renderError(err))
 			return
 		}
 	}
@@ -129,20 +129,20 @@ func GetTodayPomodoroCount(db dbInterface) http.HandlerFunc {
 		count, err := db.getTodayPomodoroCount(user)
 		if err != nil {
 			log.Println("getTodayPomodoroCount failed:", err)
-			_ = render.Render(w, r, errBadRequest(err))
+			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
 		if err := render.Render(w, r, &todayPomodoroCountResponse{TodayPomodoroCount: count}); err != nil {
 			log.Println("render failed:", err)
-			_ = render.Render(w, r, errRender(err))
+			_ = render.Render(w, r, renderError(err))
 			return
 		}
 	}
 }
 
 type restCountResponse struct {
-	RestCount int `json:"restCount"`
+	RestCount int `json:"nextRestCount"`
 }
 
 func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
@@ -152,9 +152,9 @@ func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error
 func GetRestCount(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(userKey).(*user)
 
-	if err := render.Render(w, r, &restCountResponse{RestCount: user.restCount}); err != nil {
+	if err := render.Render(w, r, &restCountResponse{RestCount: user.nextRestCount}); err != nil {
 		log.Println("render failed:", err)
-		_ = render.Render(w, r, errRender(err))
+		_ = render.Render(w, r, renderError(err))
 		return
 	}
 }

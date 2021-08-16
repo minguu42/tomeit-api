@@ -1,7 +1,6 @@
 package tomeit
 
 import (
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -60,10 +59,10 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
-func setupTestDB() {
+func setupTestDB(tb testing.TB) {
 	file, err := os.ReadFile(filepath.Join(".", "build", "setup.sql"))
 	if err != nil {
-		log.Fatal("os.ReadFile failed:", err)
+		tb.Fatal("os.ReadFile failed:", err)
 	}
 	queries := strings.Split(string(file), ";")
 
@@ -74,29 +73,29 @@ func setupTestDB() {
 
 		_, err := testDB.Exec(query)
 		if err != nil {
-			log.Fatal("db.Exec failed:", err)
+			tb.Fatal("db.Exec failed:", err)
 		}
 	}
 
 	const createTestUser = `INSERT INTO users (digest_uid) VALUES ('a2c4ba85c41f186283948b1a54efacea04cb2d3f54a88d5826a7e6a917b28c5a')`
 
 	if _, err := testDB.Exec(createTestUser); err != nil {
-		log.Fatalln("createTestUser failed:", err)
+		tb.Fatal("createTestUser failed:", err)
 	}
 }
 
-func shutdownTestDB() {
-	const dropPomodoroLogsTable = `DROP TABLE IF EXISTS pomodoro_logs`
+func shutdownTestDB(tb testing.TB) {
+	const dropPomodorosTable = `DROP TABLE IF EXISTS pomodoros`
 	const dropTasksTable = `DROP TABLE IF EXISTS tasks`
 	const dropUsersTable = `DROP TABLE IF EXISTS users`
 
-	if _, err := testDB.Exec(dropPomodoroLogsTable); err != nil {
-		log.Fatalln("shutdownTestDB failed:", err)
+	if _, err := testDB.Exec(dropPomodorosTable); err != nil {
+		tb.Fatal("drop pomodoros table failed:", err)
 	}
 	if _, err := testDB.Exec(dropTasksTable); err != nil {
-		log.Fatalln("shutdownTestDB failed:", err)
+		tb.Fatal("drop tasks table failed:", err)
 	}
 	if _, err := testDB.Exec(dropUsersTable); err != nil {
-		log.Fatalln("shutdownTestDB failed:", err)
+		tb.Fatal("drop users table failed:", err)
 	}
 }

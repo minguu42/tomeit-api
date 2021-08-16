@@ -59,10 +59,10 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatalln("$PORT must be set")
+		log.Fatal("$PORT must be set")
 	}
 
 	if err := http.ListenAndServe(":"+port, r); err != nil {
-		log.Fatalln("ListenAndServe failed:", err)
+		log.Fatal("ListenAndServe failed:", err)
 	}
 }

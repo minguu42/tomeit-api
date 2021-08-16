@@ -5,17 +5,17 @@ import (
 	"time"
 )
 
-func (db *DB) createTask(userID int64, name string, priority int, deadline time.Time) (int64, error) {
-	const q = `INSERT INTO tasks (user_id, name, priority, deadline) VALUES (?, ?, ?, ?)`
+func (db *DB) createTask(userID int64, name string, expectedPomodoroNumber int, dueOn time.Time) (int64, error) {
+	const q = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, due_on) VALUES (?, ?, ?, ?)`
 
-	r, err := db.Exec(q, userID, name, priority, deadline.Format("2006-01-02"))
+	r, err := db.Exec(q, userID, name, expectedPomodoroNumber, dueOn.Format("2006-01-02 15:04:05"))
 	if err != nil {
-		return 0, fmt.Errorf("exec failed: %w", err)
+		return 0, fmt.Errorf("db.Exec failed: %w", err)
 	}
 
 	id, err := r.LastInsertId()
 	if err != nil {
-		return 0, fmt.Errorf("lastInsertId failed: %w", err)
+		return 0, fmt.Errorf("result.lastInsertId failed: %w", err)
 	}
 
 	return id, nil
@@ -23,7 +23,7 @@ func (db *DB) createTask(userID int64, name string, priority int, deadline time.
 
 func (db *DB) getTaskByID(id int64) (*task, error) {
 	const q = `
-SELECT T.name, T.priority, T.deadline, T.is_done, T.created_at, T.updated_at, U.id, U.digest_uid 
+SELECT T.title, T.expected_pomodoro_number, T.due_on, T.is_completed, T.completed_at, T.created_at, T.updated_at, U.id
 FROM tasks AS T
 JOIN users AS U ON T.user_id = U.id
 WHERE T.id = ?
@@ -32,8 +32,8 @@ WHERE T.id = ?
 	var u user
 	t := task{id: id, user: &u}
 
-	if err := db.QueryRow(q, id).Scan(&t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt, &u.id, &u.digestUID); err != nil {
-		return nil, fmt.Errorf("scan failed: %w", err)
+	if err := db.QueryRow(q, id).Scan(&t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.completedAt, &t.createdAt, &t.updatedAt, &u.id); err != nil {
+		return nil, fmt.Errorf("row.Scan failed: %w", err)
 	}
 
 	return &t, nil
@@ -41,7 +41,7 @@ WHERE T.id = ?
 
 func (db *DB) getUndoneTasksByUser(user *user) ([]*task, error) {
 	const q = `
-SELECT id, name, priority, deadline, is_done, created_at, updated_at FROM tasks
+SELECT id, title, expectedPomodoroNumber, dueOn, is_done, created_at, updated_at FROM tasks
 WHERE user_id = ? AND is_done = FALSE
 ORDER BY updated_at
 LIMIT 30
@@ -56,7 +56,7 @@ LIMIT 30
 		t := task{
 			user: user,
 		}
-		if err := rows.Scan(&t.id, &t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
+		if err := rows.Scan(&t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
 		ts = append(ts, &t)
@@ -67,7 +67,7 @@ LIMIT 30
 
 func (db *DB) getDoneTasksByUser(user *user) ([]*task, error) {
 	const q = `
-SELECT id, name, priority, deadline, is_done, created_at, updated_at FROM tasks
+SELECT id, title, expectedPomodoroNumber, dueOn, is_done, created_at, updated_at FROM tasks
 WHERE user_id = ? AND is_done = TRUE
 ORDER BY updated_at
 LIMIT 30
@@ -82,7 +82,7 @@ LIMIT 30
 		t := task{
 			user: user,
 		}
-		if err := rows.Scan(&t.id, &t.name, &t.priority, &t.deadline, &t.isDone, &t.createdAt, &t.updatedAt); err != nil {
+		if err := rows.Scan(&t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
 		tasks = append(tasks, &t)
@@ -91,7 +91,7 @@ LIMIT 30
 	return tasks, nil
 }
 
-func (db *DB) getPomodoroCountByID(id int64) (int, error) {
+func (db *DB) getActualPomodoroNumberByID(id int64) (int, error) {
 	const q = `SELECT COUNT(*) FROM pomodoro_logs WHERE task_id = ?`
 
 	var c int

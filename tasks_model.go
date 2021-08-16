@@ -3,14 +3,15 @@ package tomeit
 import "time"
 
 type task struct {
-	id        int64
-	user      *user
-	name      string
-	priority  int
-	deadline  time.Time
-	isDone    bool
-	createdAt time.Time
-	updatedAt time.Time
+	id                     int64
+	user                   *user
+	title                  string
+	expectedPomodoroNumber int
+	dueOn                  time.Time
+	isCompleted            bool
+	completedAt            time.Time
+	createdAt              time.Time
+	updatedAt              time.Time
 }
 
 func hasUserTask(db dbInterface, taskID int64, user *user) bool {

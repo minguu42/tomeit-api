@@ -3,12 +3,14 @@ package tomeit
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"time"
 )
 
 type user struct {
-	id        int64
-	digestUID string
-	restCount int
+	id            int64
+	digestUID     string
+	nextRestCount int
+	createdAt     time.Time
 }
 
 func hash(token string) string {

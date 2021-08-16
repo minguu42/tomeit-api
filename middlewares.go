@@ -24,7 +24,7 @@ func UserCtx(db dbInterface, firebaseApp firebaseAppInterface) Middleware {
 			token, err := firebaseApp.verifyIDToken(ctx, idToken)
 			if err != nil {
 				log.Println("verifyIDToken failed:", err)
-				_ = render.Render(w, r, errAuthentication(err))
+				_ = render.Render(w, r, AuthenticationError(err))
 				return
 			}
 
@@ -34,8 +34,8 @@ func UserCtx(db dbInterface, firebaseApp firebaseAppInterface) Middleware {
 			if user == nil || err != nil {
 				user, err = db.createUser(hash(token.UID))
 				if err != nil {
-					log.Println("createUser failed:", err)
-					_ = render.Render(w, r, errUnexpectedEvent(err))
+					log.Println("db.createUser failed:", err)
+					_ = render.Render(w, r, internalServerError(err))
 				}
 			}
 

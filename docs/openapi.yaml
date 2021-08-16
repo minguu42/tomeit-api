@@ -134,7 +134,7 @@ paths:
           $ref: "#/components/responses/AuthorizationError"
         "405":
           $ref: "#/components/responses/MethodError"
-  /pomodoros/records:
+  /pomodoros:
     post:
       summary: ポモドーロ記録 API
       tags:
@@ -282,7 +282,7 @@ components:
           description: タスクを更新した時刻
           type: string
           example: "2021-01-01T00:00:00Z"
-    PomodoroRecord:
+    Pomodoro:
       type: object
       required:
         - id

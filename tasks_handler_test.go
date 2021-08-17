@@ -179,6 +179,74 @@ func TestGetTasks(t *testing.T) {
 
 		shutdownTestDB(t)
 	})
+	t.Run("success with is-completed query parameter", func(t *testing.T) {
+		setupTestDB(t)
+		setupTestGetTasks(t)
+
+		req, err := http.NewRequest("GET", testUrl+"/tasks", nil)
+		if err != nil {
+			t.Error("Create request failed:", err)
+		}
+
+		params := req.URL.Query()
+		params.Add("is-completed", "false")
+		req.URL.RawQuery = params.Encode()
+
+		resp, err := testClient.Do(req)
+		if err != nil {
+			t.Error("Do request failed:", err)
+		}
+
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Error("Read response failed:", err)
+		}
+		if err := resp.Body.Close(); err != nil {
+			t.Error("Close response failed:", err)
+		}
+
+		var body tasksResponse
+		if err := json.Unmarshal(bytes, &body); err != nil {
+			t.Error("Unmarshal json failed:", err)
+		}
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+
+		if len(body.Tasks) != 1 {
+			t.Error("Tasks should have 1 tasks, but", len(body.Tasks))
+		}
+
+		task1 := body.Tasks[0]
+		if task1.ID != 1 {
+			t.Error("ID should be 1, but", task1.ID)
+		}
+		if task1.Title != "タスク1" {
+			t.Error("Title should be タスク1, but", task1.Title)
+		}
+		if task1.ExpectedPomodoroNumber != 0 {
+			t.Error("ExpectedPomodoroNumber should be 0, but", task1.ExpectedPomodoroNumber)
+		}
+		if task1.DueOn != "2021-01-01T00:00:00Z" {
+			t.Error("DueOn should be 2021-01-01T00:00:00Z, but", task1.DueOn)
+		}
+		if task1.IsCompleted != false {
+			t.Error("IsCompleted should be false, but", task1.IsCompleted)
+		}
+		if task1.CompletedAt != "0001-01-01T00:00:00Z" {
+			t.Error("CompletedAt should be 0001-01-01T00:00:00Z, but", task1.CompletedAt)
+		}
+		if task1.ActualPomodoroNumber != 0 {
+			t.Error("ActualPomodoroNumber should be 0, but", task1.ActualPomodoroNumber)
+		}
+		if task1.CreatedAt == "" {
+			t.Error("CreatedAt does not exist")
+		}
+		if task1.UpdatedAt == "" {
+			t.Error("UpdatedAt does not exist")
+		}
+	})
 }
 
 //

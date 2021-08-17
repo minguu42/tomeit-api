@@ -122,31 +122,53 @@ func PostTask(db dbInterface) http.HandlerFunc {
 
 func GetTasks(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//var isCompleted bool
-		isCompletedStr := chi.URLParam(r, "is-completed")
-		//if isCompletedStr == "true" {
-		//	isCompleted = true
-		//} else if isCompletedStr == "false" {
-		//	isCompleted = false
-		//}
-		//
-		completedAtStr := chi.URLParam(r, "completed-at")
-		//completedAt, err := time.Parse(time.RFC3339, completedAtStr)
-		//if err != nil {
-		//	log.Println("time.Parse failed:", err)
-		//	_ = render.Render(w, r, badRequestError(err))
-		//	return
-		//}
+		existIsCompleted := true
+		var isCompleted bool
+		isCompletedStr := r.URL.Query().Get("is-completed")
+		if isCompletedStr == "" {
+			existIsCompleted = false
+		} else if isCompletedStr == "true" {
+			isCompleted = true
+		} else if isCompletedStr == "false" {
+			isCompleted = false
+		} else {
+			_ = render.Render(w, r, badRequestError(errors.New("is-completed value is invalid")))
+			return
+		}
+
+		existCompletedAt := true
+		completedAtStr := r.URL.Query().Get("completed-at")
+		completedAt, err := time.Parse(time.RFC3339, completedAtStr)
+		if err != nil {
+			if completedAtStr == "" {
+				existCompletedAt = false
+			} else {
+				_ = render.Render(w, r, badRequestError(errors.New("completed-at value is invalid")))
+				return
+			}
+		}
 
 		user := r.Context().Value(userKey).(*user)
 
 		var tasks []*task
-		var err error
-		if isCompletedStr == "" && completedAtStr == "" {
+		if !existIsCompleted && !existCompletedAt {
 			tasks, err = db.getTasksByUser(user)
 			if err != nil {
 				log.Println("db.getTasksByUser failed:", err)
-				_ = render.Render(w, r, errNotFound())
+				_ = render.Render(w, r, internalServerError(err))
+				return
+			}
+		} else {
+			options := searchTasksOptions{
+				existIsCompleted: existIsCompleted,
+				isCompleted:      isCompleted,
+				existCompletedAt: existCompletedAt,
+				completedAt:      completedAt,
+			}
+			tasks, err = db.searchTasks(user, &options)
+			if err != nil {
+				log.Println("db.searchTasks failed:", err)
+				_ = render.Render(w, r, internalServerError(err))
 				return
 			}
 		}

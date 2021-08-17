@@ -5,26 +5,26 @@ import (
 	"time"
 )
 
-func (db *DB) createPomodoroRecord(userID, taskID int64) (int64, error) {
-	const q = `INSERT INTO pomodoro_logs (user_id, task_id) VALUES (?, ?)`
+func (db *DB) createPomodoro(userID, taskID int64) (int64, error) {
+	const q = `INSERT INTO pomodoros (user_id, task_id) VALUES (?, ?)`
 
 	r, err := db.Exec(q, userID, taskID)
 	if err != nil {
-		return 0, fmt.Errorf("exec failed: %w", err)
+		return 0, fmt.Errorf("db.Exec failed: %w", err)
 	}
 
 	id, err := r.LastInsertId()
 	if err != nil {
-		return 0, fmt.Errorf("lastInsertId failed: %w", err)
+		return 0, fmt.Errorf("result.LastInsertId failed: %w", err)
 	}
 
 	return id, nil
 }
 
-func (db *DB) getPomodoroRecordByID(id int64) (*pomodoroRecord, error) {
+func (db *DB) getPomodoroByID(id int64) (*pomodoro, error) {
 	const q = `
-SELECT P.created_at, U.id, U.digest_uid, T.id, T.title, T.expectedPomodoroNumber, T.dueOn, T.is_done, T.created_at, T.updated_at
-FROM pomodoro_logs AS P
+SELECT P.completed_at, P.created_at, U.id, U.digest_uid, T.id, T.title, T.expected_pomodoro_number, T.due_on, T.is_completed, T.created_at, T.updated_at
+FROM pomodoros AS P
 JOIN users AS U ON P.user_id = U.id
 JOIN tasks AS T ON P.task_id = T.id
 WHERE P.id = ?
@@ -32,19 +32,19 @@ WHERE P.id = ?
 
 	var u user
 	var t task
-	p := pomodoroRecord{
+	p := pomodoro{
 		id:   id,
 		user: &u,
 		task: &t,
 	}
-	if err := db.QueryRow(q, id).Scan(&p.createdAt, &u.id, &u.digestUID, &t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {
-		return nil, fmt.Errorf("scan failed: %w", err)
+	if err := db.QueryRow(q, id).Scan(&p.completedAt, &p.createdAt, &u.id, &u.digestUID, &t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {
+		return nil, fmt.Errorf("row.Scan failed: %w", err)
 	}
 
 	return &p, nil
 }
 
-func (db *DB) getPomodoroRecordsByUser(user *user) ([]*pomodoroRecord, error) {
+func (db *DB) getPomodoroRecordsByUser(user *user) ([]*pomodoro, error) {
 	const q = `
 SELECT P.id, P.created_at, T.id, T.title, T.expectedPomodoroNumber, T.dueOn, T.is_done, T.created_at, T.updated_at
 FROM pomodoro_logs AS P
@@ -53,7 +53,7 @@ WHERE P.user_id = ?
 ORDER BY P.created_at
 LIMIT 30
 `
-	var ps []*pomodoroRecord
+	var ps []*pomodoro
 
 	rows, err := db.Query(q, user.id)
 	if err != nil {
@@ -62,7 +62,7 @@ LIMIT 30
 
 	for rows.Next() {
 		var t task
-		p := pomodoroRecord{
+		p := pomodoro{
 			user: user,
 		}
 		if err := rows.Scan(&p.id, &p.createdAt, &t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {

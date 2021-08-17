@@ -43,10 +43,9 @@ func main() {
 		r.Patch("/{task-id}", tomeit.PatchTask(db))
 	})
 	r.Route("/pomodoros", func(r chi.Router) {
+		r.Post("/", tomeit.PostPomodoro(db))
 		r.Route("/records", func(r chi.Router) {
-			r.Post("/", tomeit.PostPomodoroRecord(db))
 			r.Get("/", tomeit.GetPomodoroRecords(db))
-			r.Get("/count/today", tomeit.GetTodayPomodoroCount(db))
 		})
 
 		r.Get("/rest-count", tomeit.GetRestCount)

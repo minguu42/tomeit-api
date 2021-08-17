@@ -9,87 +9,89 @@ import (
 	"github.com/go-chi/render"
 )
 
-type pomodoroRecordRequest struct {
-	TaskID int64 `json:"taskID"`
+type pomodoroResponse struct {
+	ID          int64         `json:"id"`
+	Task        *taskResponse `json:"task"`
+	CompletedAt string        `json:"completedAt"`
+	CreatedAt   string        `json:"createdAt"`
 }
 
-func (p *pomodoroRecordRequest) Bind(r *http.Request) error {
-	if p.TaskID == 0 {
-		return errors.New("missing required taskID field")
-	}
-	return nil
-}
-
-type pomodoroRecordResponse struct {
-	ID        int64         `json:"id"`
-	Task      *taskResponse `json:"task"`
-	CreatedAt string        `json:"createdAt"`
-}
-
-func newPomodoroRecordResponse(p *pomodoroRecord, db dbInterface) *pomodoroRecordResponse {
-	r := pomodoroRecordResponse{
-		ID:        p.id,
-		Task:      newTaskResponse(p.task, db),
-		CreatedAt: p.createdAt.Format(time.RFC3339),
+func newPomodoroResponse(p *pomodoro, db dbInterface) *pomodoroResponse {
+	r := pomodoroResponse{
+		ID:          p.id,
+		Task:        newTaskResponse(p.task, db),
+		CompletedAt: p.completedAt.Format(time.RFC3339),
+		CreatedAt:   p.createdAt.Format(time.RFC3339),
 	}
 	return &r
 }
 
-func (p *pomodoroRecordResponse) Render(w http.ResponseWriter, r *http.Request) error {
+func (p *pomodoroResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-type pomodoroRecordsResponse struct {
-	PomodoroRecords []*pomodoroRecordResponse `json:"pomodoroRecords"`
+type pomodorosResponse struct {
+	Pomodoros []*pomodoroResponse `json:"pomodoros"`
 }
 
-func newPomodoroRecordsResponse(pomodoroRecords []*pomodoroRecord, db dbInterface) *pomodoroRecordsResponse {
-	var ps []*pomodoroRecordResponse
+func newPomodorosResponse(pomodoroRecords []*pomodoro, db dbInterface) *pomodorosResponse {
+	var ps []*pomodoroResponse
 	for _, p := range pomodoroRecords {
-		ps = append(ps, newPomodoroRecordResponse(p, db))
+		ps = append(ps, newPomodoroResponse(p, db))
 	}
-	return &pomodoroRecordsResponse{PomodoroRecords: ps}
+	return &pomodorosResponse{Pomodoros: ps}
 }
 
-func (ps *pomodoroRecordsResponse) Render(w http.ResponseWriter, r *http.Request) error {
+func (ps *pomodorosResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func PostPomodoroRecord(db dbInterface) http.HandlerFunc {
+type postPomodoroRequest struct {
+	TaskID int64 `json:"taskID"`
+}
+
+func (p *postPomodoroRequest) Bind(r *http.Request) error {
+	if p.TaskID <= 0 {
+		return errors.New("missing required taskID field or taskID is a negative number")
+	}
+	return nil
+}
+
+func PostPomodoro(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := &pomodoroRecordRequest{}
-		if err := render.Bind(r, data); err != nil {
-			log.Println("bind failed:", err)
+		reqBody := &postPomodoroRequest{}
+		if err := render.Bind(r, reqBody); err != nil {
+			log.Println("render.Bind failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
 		user := r.Context().Value(userKey).(*user)
 
-		pomodoroLogID, err := db.createPomodoroRecord(user.id, data.TaskID)
+		pomodoroID, err := db.createPomodoro(user.id, reqBody.TaskID)
 		if err != nil {
-			log.Println("createPomodoroRecord failed:", err)
+			log.Println("db.createPomodoro failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
-		pomodoroLog, err := db.getPomodoroRecordByID(pomodoroLogID)
+		pomodoro, err := db.getPomodoroByID(pomodoroID)
 		if err != nil {
-			log.Println("getPomodoroRecordByID failed:", err)
+			log.Println("db.getPomodoroByID failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
-		if err := db.decrementRestCount(user); err != nil {
-			log.Println("decrementRestCount failed:", err)
+		if err := db.decrementNextRestCount(user); err != nil {
+			log.Println("db.decrementNextRestCount failed:", err)
 			_ = render.Render(w, r, internalServerError(err))
 			return
 		}
 
 		render.Status(r, http.StatusCreated)
-		if err = render.Render(w, r, newPomodoroRecordResponse(pomodoroLog, db)); err != nil {
-			log.Println("render failed:", err)
-			_ = render.Render(w, r, renderError(err))
+		if err = render.Render(w, r, newPomodoroResponse(pomodoro, db)); err != nil {
+			log.Println("render.Render failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
 			return
 		}
 	}
@@ -106,34 +108,7 @@ func GetPomodoroRecords(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		if err := render.Render(w, r, newPomodoroRecordsResponse(pomodoroLogs, db)); err != nil {
-			log.Println("render failed:", err)
-			_ = render.Render(w, r, renderError(err))
-			return
-		}
-	}
-}
-
-type todayPomodoroCountResponse struct {
-	TodayPomodoroCount int `json:"todayPomodoroCount"`
-}
-
-func (resp *todayPomodoroCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-func GetTodayPomodoroCount(db dbInterface) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		user := r.Context().Value(userKey).(*user)
-
-		count, err := db.getTodayPomodoroCount(user)
-		if err != nil {
-			log.Println("getTodayPomodoroCount failed:", err)
-			_ = render.Render(w, r, badRequestError(err))
-			return
-		}
-
-		if err := render.Render(w, r, &todayPomodoroCountResponse{TodayPomodoroCount: count}); err != nil {
+		if err := render.Render(w, r, newPomodorosResponse(pomodoroLogs, db)); err != nil {
 			log.Println("render failed:", err)
 			_ = render.Render(w, r, renderError(err))
 			return

@@ -16,9 +16,9 @@ CREATE TABLE IF NOT EXISTS tasks (
     user_id                  INT          NOT NULL,
     title                    VARCHAR(120) NOT NULL,
     expected_pomodoro_number INT          DEFAULT 0 NOT NULL CHECK (0 <= expected_pomodoro_number AND expected_pomodoro_number <= 6),
-    due_on                   TIMESTAMP    DEFAULT ('1970-01-01 00:00:01') NOT NULL,
+    due_on                   DATE,
     is_completed             BOOLEAN      DEFAULT FALSE NOT NULL,
-    completed_at             TIMESTAMP    DEFAULT ('1970-01-01 00:00:01') NOT NULL,
+    completed_at             TIMESTAMP,
     created_at               TIMESTAMP    DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at               TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)

@@ -45,13 +45,6 @@ func newTaskResponse(t *task, db dbInterface) *taskResponse {
 		c = 0
 	}
 
-	if t.dueOn.Format(time.RFC3339) == "1970-01-01T00:00:01Z" {
-		t.dueOn = time.Time{}
-	}
-	if t.completedAt.Format(time.RFC3339) == "1970-01-01T00:00:01Z" {
-		t.completedAt = time.Time{}
-	}
-
 	r := taskResponse{
 		ID:                     t.id,
 		Title:                  t.title,

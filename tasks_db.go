@@ -1,6 +1,7 @@
 package tomeit
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -8,7 +9,7 @@ import (
 func (db *DB) createTask(userID int64, name string, expectedPomodoroNumber int, dueOn time.Time) (int64, error) {
 	const q = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, due_on) VALUES (?, ?, ?, ?)`
 
-	r, err := db.Exec(q, userID, name, expectedPomodoroNumber, dueOn.Format("2006-01-02 15:04:05"))
+	r, err := db.Exec(q, userID, name, expectedPomodoroNumber, dueOn.Format("2006-01-02"))
 	if err != nil {
 		return 0, fmt.Errorf("db.Exec failed: %w", err)
 	}
@@ -30,11 +31,16 @@ WHERE T.id = ?
 `
 
 	var u user
+	var nullDueOn sql.NullTime
+	var nullCompletedAt sql.NullTime
 	t := task{id: id, user: &u}
 
-	if err := db.QueryRow(q, id).Scan(&t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.completedAt, &t.createdAt, &t.updatedAt, &u.id); err != nil {
+	if err := db.QueryRow(q, id).Scan(&t.title, &t.expectedPomodoroNumber, &nullDueOn, &t.isCompleted, &nullCompletedAt, &t.createdAt, &t.updatedAt, &u.id); err != nil {
 		return nil, fmt.Errorf("row.Scan failed: %w", err)
 	}
+
+	t.dueOn = nullDueOn.Time
+	t.completedAt = nullCompletedAt.Time
 
 	return &t, nil
 }

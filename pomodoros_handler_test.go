@@ -75,11 +75,14 @@ func TestPostPomodoroRecord(t *testing.T) {
 		if task.CompletedAt != "0001-01-01T00:00:00Z" {
 			t.Error("CompletedAt should be 0001-01-01T00:00:00Z, but", task.CompletedAt)
 		}
-		if task.CreatedAt == "" {
-			t.Error("CreatedAt does not exist")
+		if task.CreatedAt == "0001-01-01T00:00:00Z" {
+			t.Error("CreatedAt should not be 0001-01-01T00:00:00Z")
 		}
-		if task.UpdatedAt == "" {
-			t.Error("UpdatedAt does not exist")
+		if task.UpdatedAt == "0001-01-01T00:00:00Z" {
+			t.Error("UpdatedAt should not be 0001-01-01T00:00:00Z")
+		}
+		if body.CompletedAt == "0001-01-01T00:00:00Z" {
+			t.Error("CompletedAt should not be 0001-01-01T00:00:00Z")
 		}
 		if body.CreatedAt == "" {
 			t.Error("CreatedAt does not exist")
@@ -148,15 +151,21 @@ func TestGetPomodoros(t *testing.T) {
 		if pomodoroRecord1.ID != 1 {
 			t.Error("ID should be 1, but", pomodoroRecord1.ID)
 		}
-		if pomodoroRecord1.CreatedAt == "" {
-			t.Error("CreatedAt does not exist")
+		if pomodoroRecord1.CompletedAt == "0001-01-01T00:00:00Z" {
+			t.Error("CompletedAt should not be 0001-01-01T00:00:00Z")
+		}
+		if pomodoroRecord1.CreatedAt == "0001-01-01T00:00:00Z" {
+			t.Error("CreatedAt should not be 0001-01-01T00:00:00Z")
 		}
 		pomodoroRecord2 := body.Pomodoros[1]
 		if pomodoroRecord2.ID != 2 {
 			t.Error("ID should be 2, but", pomodoroRecord2.ID)
 		}
-		if pomodoroRecord2.CreatedAt == "" {
-			t.Error("CreatedAt does not exist")
+		if pomodoroRecord2.CompletedAt == "0001-01-01T00:00:00Z" {
+			t.Error("CompletedAt should not be 0001-01-01T00:00:00Z")
+		}
+		if pomodoroRecord2.CreatedAt == "0001-01-01T00:00:00Z" {
+			t.Error("CreatedAt should not be 0001-01-01T00:00:00Z")
 		}
 
 		shutdownTestDB(t)

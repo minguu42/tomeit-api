@@ -24,7 +24,7 @@ func (db *DB) createPomodoro(userID, taskID int64) (int64, error) {
 
 func (db *DB) getPomodoroByID(id int64) (*pomodoro, error) {
 	const q = `
-SELECT P.completed_at, P.created_at, U.id, U.digest_uid, T.id, T.title, T.expected_pomodoro_number, T.due_on, T.is_completed, T.created_at, T.updated_at
+SELECT P.completed_at, P.created_at, U.id, U.digest_uid, T.id, T.title, T.expected_pomodoro_number, T.due_on, T.is_completed, T.completed_at,T.created_at, T.updated_at
 FROM pomodoros AS P
 JOIN users AS U ON P.user_id = U.id
 JOIN tasks AS T ON P.task_id = T.id
@@ -33,14 +33,18 @@ WHERE P.id = ?
 
 	var u user
 	var t task
+	var nullDueOn sql.NullTime
+	var nullCompletedAt sql.NullTime
 	p := pomodoro{
 		id:   id,
 		user: &u,
 		task: &t,
 	}
-	if err := db.QueryRow(q, id).Scan(&p.completedAt, &p.createdAt, &u.id, &u.digestUID, &t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {
+	if err := db.QueryRow(q, id).Scan(&p.completedAt, &p.createdAt, &u.id, &u.digestUID, &t.id, &t.title, &t.expectedPomodoroNumber, &nullDueOn, &t.isCompleted, &nullCompletedAt, &t.createdAt, &t.updatedAt); err != nil {
 		return nil, fmt.Errorf("row.Scan failed: %w", err)
 	}
+	t.dueOn = nullDueOn.Time
+	t.completedAt = nullCompletedAt.Time
 
 	return &p, nil
 }

@@ -148,29 +148,20 @@ func GetTasks(db dbInterface) http.HandlerFunc {
 			}
 		}
 
+		options := getTasksOptions{
+			existIsCompleted: existIsCompleted,
+			isCompleted:      isCompleted,
+			existCompletedAt: existCompletedAt,
+			completedAt:      completedAt,
+		}
+
 		user := r.Context().Value(userKey).(*user)
 
-		var tasks []*task
-		if !existIsCompleted && !existCompletedAt {
-			tasks, err = db.getTasksByUser(user)
-			if err != nil {
-				log.Println("db.getTasksByUser failed:", err)
-				_ = render.Render(w, r, internalServerError(err))
-				return
-			}
-		} else {
-			options := searchTasksOptions{
-				existIsCompleted: existIsCompleted,
-				isCompleted:      isCompleted,
-				existCompletedAt: existCompletedAt,
-				completedAt:      completedAt,
-			}
-			tasks, err = db.searchTasks(user, &options)
-			if err != nil {
-				log.Println("db.searchTasks failed:", err)
-				_ = render.Render(w, r, internalServerError(err))
-				return
-			}
+		tasks, err := db.getTasksByUser(user, &options)
+		if err != nil {
+			log.Println("db.getTasksByUser failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
+			return
 		}
 
 		if err := render.Render(w, r, newTasksResponse(tasks, db)); err != nil {

@@ -46,47 +46,14 @@ WHERE T.id = ?
 	return &t, nil
 }
 
-func (db *DB) getTasksByUser(user *user) ([]*task, error) {
-	const q = `
-SELECT id, title, expected_pomodoro_number, due_on, is_completed, completed_at, created_at, updated_at
-FROM tasks
-WHERE user_id = ?
-ORDER BY created_at
-LIMIT 30
-`
-	var ts []*task
-	rows, err := db.Query(q, user.id)
-	if err != nil {
-		return nil, fmt.Errorf("db.Query failed: %w", err)
-	}
-
-	for rows.Next() {
-		t := task{
-			user: user,
-		}
-
-		var nullDueOn sql.NullTime
-		var nullCompletedAt sql.NullTime
-		if err := rows.Scan(&t.id, &t.title, &t.expectedPomodoroNumber, &nullDueOn, &t.isCompleted, &nullCompletedAt, &t.createdAt, &t.updatedAt); err != nil {
-			return nil, fmt.Errorf("rows.Scan failed: %w", err)
-		}
-		t.dueOn = nullDueOn.Time
-		t.completedAt = nullCompletedAt.Time
-
-		ts = append(ts, &t)
-	}
-
-	return ts, nil
-}
-
-type searchTasksOptions struct {
+type getTasksOptions struct {
 	existIsCompleted bool
 	isCompleted      bool
 	existCompletedAt bool
 	completedAt      time.Time
 }
 
-func (db *DB) searchTasks(user *user, options *searchTasksOptions) ([]*task, error) {
+func (db *DB) getTasksByUser(user *user, options *getTasksOptions) ([]*task, error) {
 	var optionList []string
 	if options != nil {
 		if options.existIsCompleted {

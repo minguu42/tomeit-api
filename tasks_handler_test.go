@@ -12,7 +12,7 @@ func TestPostTask(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		setupTestDB(t)
 
-		reqBody := strings.NewReader(`{"title": "新しいタスク", "expectedPomodoroNumber": 1, "dueOn": "2021-01-01T00:00:00Z"}`)
+		reqBody := strings.NewReader(`{"title": "新しいタスク", "expectedPomodoroNumber": 1, "dueOn": "0001-01-01T00:00:00Z"}`)
 		req, err := http.NewRequest("POST", testUrl+"/tasks", reqBody)
 		if err != nil {
 			t.Error("Create request failed:", err)
@@ -51,8 +51,8 @@ func TestPostTask(t *testing.T) {
 		if body.ActualPomodoroNumber != 0 {
 			t.Error("ActualPomodoroNumber should be 0, but", body.ActualPomodoroNumber)
 		}
-		if body.DueOn != "2021-01-01T00:00:00Z" {
-			t.Error("DueOn should be 2021-01-01T00:00:00Z, but", body.DueOn)
+		if body.DueOn != "0001-01-01T00:00:00Z" {
+			t.Error("DueOn should be 0001-01-01T00:00:00Z, but", body.DueOn)
 		}
 		if body.IsCompleted != false {
 			t.Error("IsCompleted should be false, but", body.IsCompleted)

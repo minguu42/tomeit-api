@@ -12,7 +12,7 @@ import (
 type pomodoroResponse struct {
 	ID          int64         `json:"id"`
 	Task        *taskResponse `json:"task"`
-	CompletedAt string        `json:"completedAt"`
+	CompletedAt string        `json:"completedOn"`
 	CreatedAt   string        `json:"createdAt"`
 }
 
@@ -99,9 +99,26 @@ func PostPomodoro(db dbInterface) http.HandlerFunc {
 
 func GetPomodoros(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		existCompletedOn := true
+		completedOnStr := r.URL.Query().Get("completed-on")
+		completedOn, err := time.Parse(time.RFC3339, completedOnStr)
+		if err != nil {
+			if completedOnStr == "" {
+				existCompletedOn = false
+			} else {
+				_ = render.Render(w, r, badRequestError(errors.New("completed-on value is invalid")))
+				return
+			}
+		}
+
+		options := getPomodorosOptions{
+			existCompletedOn: existCompletedOn,
+			completedOn:      completedOn,
+		}
+
 		user := r.Context().Value(userKey).(*user)
 
-		pomodoros, err := db.getPomodorosByUser(user)
+		pomodoros, err := db.getPomodorosByUser(user, &options)
 		if err != nil {
 			log.Println("db.getPomodorosByUser failed:", err)
 			_ = render.Render(w, r, badRequestError(err))

@@ -176,11 +176,10 @@ paths:
         作成順で最大30件まで取得する.
       parameters:
         - $ref: "#/components/parameters/id-token"
-        - name: completed-at
+        - name: completed-on
           in: "query"
-          description: completedAt でポモドーロ記録を絞り込む
+          description: 実行した日付で絞り込む
           schema:
-            description: ポモドーロを実行した時間
             type: string
             example: "2021-01-01T00:00:00Z"
       responses:

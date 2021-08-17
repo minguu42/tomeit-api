@@ -49,17 +49,33 @@ WHERE P.id = ?
 	return &p, nil
 }
 
-func (db *DB) getPomodorosByUser(user *user) ([]*pomodoro, error) {
-	const q = `
+type getPomodorosOptions struct {
+	existCompletedOn bool
+	completedOn      time.Time
+}
+
+func (db *DB) getPomodorosByUser(user *user, options *getPomodorosOptions) ([]*pomodoro, error) {
+	var optionList []string
+	if options != nil {
+		if options.existCompletedOn {
+			optionList = append(optionList, "AND DATE(P.completed_at) = '"+options.completedOn.Format("2006-01-02")+"'")
+		}
+	}
+
+	q := `
 SELECT P.id, P.completed_at, P.created_at, T.id, T.title, T.expected_pomodoro_number, T.due_on, T.is_completed, T.completed_at,T.created_at, T.updated_at
 FROM pomodoros AS P
 JOIN tasks AS T ON P.task_id = T.id
 WHERE P.user_id = ?
+`
+	for _, option := range optionList {
+		q = q + option
+	}
+	q = q + `
 ORDER BY P.created_at
 LIMIT 30
 `
 	var ps []*pomodoro
-
 	rows, err := db.Query(q, user.id)
 	if err != nil {
 		return nil, fmt.Errorf("db.Query failed: %w", err)

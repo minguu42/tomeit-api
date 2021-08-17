@@ -50,8 +50,8 @@ WHERE T.id = ?
 type getTasksOptions struct {
 	existIsCompleted bool
 	isCompleted      bool
-	existCompletedAt bool
-	completedAt      time.Time
+	existCompletedOn bool
+	completedOn      time.Time
 }
 
 func (db *DB) getTasksByUser(user *user, options *getTasksOptions) ([]*task, error) {
@@ -60,8 +60,8 @@ func (db *DB) getTasksByUser(user *user, options *getTasksOptions) ([]*task, err
 		if options.existIsCompleted {
 			optionList = append(optionList, "AND is_completed = "+strconv.FormatBool(options.isCompleted))
 		}
-		if options.existCompletedAt {
-			optionList = append(optionList, "AND completed_at = "+options.completedAt.Format("2006-01-02 15:04:05"))
+		if options.existCompletedOn {
+			optionList = append(optionList, "AND DATE(completed_at) = '"+options.completedOn.Format("2006-01-02")+"'")
 		}
 	}
 

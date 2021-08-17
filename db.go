@@ -19,7 +19,7 @@ type dbInterface interface {
 
 	createPomodoro(userID, taskID int64) (int64, error)
 	getPomodoroByID(id int64) (*pomodoro, error)
-	getPomodoroRecordsByUser(user *user) ([]*pomodoro, error)
+	getPomodorosByUser(user *user) ([]*pomodoro, error)
 	getTodayPomodoroCount(user *user) (int, error)
 }
 

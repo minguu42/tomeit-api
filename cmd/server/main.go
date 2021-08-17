@@ -44,9 +44,7 @@ func main() {
 	})
 	r.Route("/pomodoros", func(r chi.Router) {
 		r.Post("/", tomeit.PostPomodoro(db))
-		r.Route("/records", func(r chi.Router) {
-			r.Get("/", tomeit.GetPomodoroRecords(db))
-		})
+		r.Get("/", tomeit.GetPomodoros(db))
 
 		r.Get("/rest-count", tomeit.GetRestCount)
 	})

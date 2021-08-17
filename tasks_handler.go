@@ -120,39 +120,40 @@ func PostTask(db dbInterface) http.HandlerFunc {
 	}
 }
 
-func GetTasksUndone(db dbInterface) http.HandlerFunc {
+func GetTasks(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		//var isCompleted bool
+		isCompletedStr := chi.URLParam(r, "is-completed")
+		//if isCompletedStr == "true" {
+		//	isCompleted = true
+		//} else if isCompletedStr == "false" {
+		//	isCompleted = false
+		//}
+		//
+		completedAtStr := chi.URLParam(r, "completed-at")
+		//completedAt, err := time.Parse(time.RFC3339, completedAtStr)
+		//if err != nil {
+		//	log.Println("time.Parse failed:", err)
+		//	_ = render.Render(w, r, badRequestError(err))
+		//	return
+		//}
+
 		user := r.Context().Value(userKey).(*user)
 
-		tasks, err := db.getUndoneTasksByUser(user)
-		if err != nil {
-			log.Println("getUndoneTasksByUser failed:", err)
-			_ = render.Render(w, r, errNotFound())
-			return
+		var tasks []*task
+		var err error
+		if isCompletedStr == "" && completedAtStr == "" {
+			tasks, err = db.getTasksByUser(user)
+			if err != nil {
+				log.Println("db.getTasksByUser failed:", err)
+				_ = render.Render(w, r, errNotFound())
+				return
+			}
 		}
 
 		if err := render.Render(w, r, newTasksResponse(tasks, db)); err != nil {
-			log.Println("render failed:", err)
-			_ = render.Render(w, r, renderError(err))
-			return
-		}
-	}
-}
-
-func GetTasksDone(db dbInterface) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		user := r.Context().Value(userKey).(*user)
-
-		tasks, err := db.getDoneTasksByUser(user)
-		if err != nil {
-			log.Println("getUndoneTasksByUser failed:", err)
-			_ = render.Render(w, r, errNotFound())
-			return
-		}
-
-		if err := render.Render(w, r, newTasksResponse(tasks, db)); err != nil {
-			log.Println("render failed:", err)
-			_ = render.Render(w, r, renderError(err))
+			log.Println("render.Render failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
 			return
 		}
 	}

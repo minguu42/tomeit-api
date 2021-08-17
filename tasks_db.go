@@ -3,6 +3,7 @@ package tomeit
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -45,56 +46,59 @@ WHERE T.id = ?
 	return &t, nil
 }
 
-func (db *DB) getUndoneTasksByUser(user *user) ([]*task, error) {
-	const q = `
-SELECT id, title, expectedPomodoroNumber, dueOn, is_done, created_at, updated_at FROM tasks
-WHERE user_id = ? AND is_done = FALSE
-ORDER BY updated_at
+type getTasksOptions struct {
+	existIsCompleted bool
+	isCompleted      bool
+	existCompletedAt bool
+	completedAt      time.Time
+}
+
+func (db *DB) getTasksByUser(user *user, options *getTasksOptions) ([]*task, error) {
+	var optionList []string
+	if options != nil {
+		if options.existIsCompleted {
+			optionList = append(optionList, "AND is_completed = "+strconv.FormatBool(options.isCompleted))
+		}
+		if options.existCompletedAt {
+			optionList = append(optionList, "AND completed_at = "+options.completedAt.Format("2006-01-02 15:04:05"))
+		}
+	}
+
+	q := `
+SELECT id, title, expected_pomodoro_number, due_on, is_completed, completed_at, created_at, updated_at
+FROM tasks
+WHERE user_id = ?
+`
+	for _, option := range optionList {
+		q = q + option
+	}
+	q = q + `
+ORDER BY created_at
 LIMIT 30
 `
 	var ts []*task
 	rows, err := db.Query(q, user.id)
 	if err != nil {
-		return nil, fmt.Errorf("query failed: %w", err)
+		return nil, fmt.Errorf("db.Query failed: %w", err)
 	}
 
 	for rows.Next() {
 		t := task{
 			user: user,
 		}
-		if err := rows.Scan(&t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {
-			return nil, fmt.Errorf("scan failed: %w", err)
+
+		var nullDueOn sql.NullTime
+		var nullCompletedAt sql.NullTime
+		if err := rows.Scan(&t.id, &t.title, &t.expectedPomodoroNumber, &nullDueOn, &t.isCompleted, &nullCompletedAt, &t.createdAt, &t.updatedAt); err != nil {
+			return nil, fmt.Errorf("rows.Scan failed: %w", err)
 		}
+		t.dueOn = nullDueOn.Time
+		t.completedAt = nullCompletedAt.Time
+
 		ts = append(ts, &t)
 	}
 
 	return ts, nil
-}
-
-func (db *DB) getDoneTasksByUser(user *user) ([]*task, error) {
-	const q = `
-SELECT id, title, expectedPomodoroNumber, dueOn, is_done, created_at, updated_at FROM tasks
-WHERE user_id = ? AND is_done = TRUE
-ORDER BY updated_at
-LIMIT 30
-`
-	var tasks []*task
-	rows, err := db.Query(q, user.id)
-	if err != nil {
-		return nil, fmt.Errorf("query failed: %w", err)
-	}
-
-	for rows.Next() {
-		t := task{
-			user: user,
-		}
-		if err := rows.Scan(&t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {
-			return nil, fmt.Errorf("scan failed: %w", err)
-		}
-		tasks = append(tasks, &t)
-	}
-
-	return tasks, nil
 }
 
 func (db *DB) getActualPomodoroNumberByID(id int64) (int, error) {

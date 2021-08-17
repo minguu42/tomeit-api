@@ -120,39 +120,53 @@ func PostTask(db dbInterface) http.HandlerFunc {
 	}
 }
 
-func GetTasksUndone(db dbInterface) http.HandlerFunc {
+func GetTasks(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		existIsCompleted := true
+		var isCompleted bool
+		isCompletedStr := r.URL.Query().Get("is-completed")
+		if isCompletedStr == "" {
+			existIsCompleted = false
+		} else if isCompletedStr == "true" {
+			isCompleted = true
+		} else if isCompletedStr == "false" {
+			isCompleted = false
+		} else {
+			_ = render.Render(w, r, badRequestError(errors.New("is-completed value is invalid")))
+			return
+		}
+
+		existCompletedAt := true
+		completedAtStr := r.URL.Query().Get("completed-at")
+		completedAt, err := time.Parse(time.RFC3339, completedAtStr)
+		if err != nil {
+			if completedAtStr == "" {
+				existCompletedAt = false
+			} else {
+				_ = render.Render(w, r, badRequestError(errors.New("completed-at value is invalid")))
+				return
+			}
+		}
+
+		options := getTasksOptions{
+			existIsCompleted: existIsCompleted,
+			isCompleted:      isCompleted,
+			existCompletedAt: existCompletedAt,
+			completedAt:      completedAt,
+		}
+
 		user := r.Context().Value(userKey).(*user)
 
-		tasks, err := db.getUndoneTasksByUser(user)
+		tasks, err := db.getTasksByUser(user, &options)
 		if err != nil {
-			log.Println("getUndoneTasksByUser failed:", err)
-			_ = render.Render(w, r, errNotFound())
+			log.Println("db.getTasksByUser failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
 			return
 		}
 
 		if err := render.Render(w, r, newTasksResponse(tasks, db)); err != nil {
-			log.Println("render failed:", err)
-			_ = render.Render(w, r, renderError(err))
-			return
-		}
-	}
-}
-
-func GetTasksDone(db dbInterface) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		user := r.Context().Value(userKey).(*user)
-
-		tasks, err := db.getDoneTasksByUser(user)
-		if err != nil {
-			log.Println("getUndoneTasksByUser failed:", err)
-			_ = render.Render(w, r, errNotFound())
-			return
-		}
-
-		if err := render.Render(w, r, newTasksResponse(tasks, db)); err != nil {
-			log.Println("render failed:", err)
-			_ = render.Render(w, r, renderError(err))
+			log.Println("render.Render failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
 			return
 		}
 	}

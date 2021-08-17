@@ -99,18 +99,3 @@ LIMIT 30
 
 	return ps, nil
 }
-
-func (db *DB) getTodayPomodoroCount(user *user) (int, error) {
-	today := time.Now().UTC().Format("2006-01-02")
-
-	const q = `
-SELECT COUNT(*) FROM pomodoro_logs
-WHERE user_id = ? AND DATE(created_at) = ?
-`
-	var c int
-
-	if err := db.QueryRow(q, user.id, today).Scan(&c); err != nil {
-		return 0, fmt.Errorf("row.Scan failed: %w", err)
-	}
-	return c, nil
-}

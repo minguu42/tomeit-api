@@ -20,7 +20,6 @@ type dbInterface interface {
 	createPomodoro(userID, taskID int64) (int64, error)
 	getPomodoroByID(id int64) (*pomodoro, error)
 	getPomodorosByUser(user *user, options *getPomodorosOptions) ([]*pomodoro, error)
-	getTodayPomodoroCount(user *user) (int, error)
 }
 
 type DB struct {

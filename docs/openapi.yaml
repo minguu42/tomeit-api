@@ -63,15 +63,15 @@ paths:
         タスクを一覧で取得する
 
         作成順で最大30件まで取得する.
-        クエリパラメータの is-completed, completed-at で絞り込みが可能である.
-        どちらのクエリパラメータも省略可能であり, 両方とも指定しても良い.
       parameters:
         - $ref: "#/components/parameters/id-token"
         - name: is-completed
+          description: タスクを完了したかで絞り込む
           in: "query"
           schema:
             type: boolean
-        - name: completed-at
+        - name: completed-on
+          description: タスクを完了した日付で絞り込む
           in: "query"
           schema:
             type: string

@@ -163,41 +163,40 @@ func TestGetPomodoros(t *testing.T) {
 	})
 }
 
-//func TestGetRestCount(t *testing.T) {
-//	t.Run("success", func(t *testing.T) {
-//		setupTestDB()
-//
-//		req, err := http.NewRequest("GET", testUrl+"/pomodoros/rest-count", nil)
-//		if err != nil {
-//			t.Error("Create request failed:", err)
-//		}
-//
-//		resp, err := testClient.Do(req)
-//		if err != nil {
-//			t.Error("Do request failed:", err)
-//		}
-//
-//		bytes, err := io.ReadAll(resp.Body)
-//		if err != nil {
-//			t.Error("Read response failed:", err)
-//		}
-//		if err := resp.Body.Close(); err != nil {
-//			t.Error("Close response failed:", err)
-//		}
-//
-//		var body restCountResponse
-//		if err := json.Unmarshal(bytes, &body); err != nil {
-//			t.Error("Unmarshal json failed:", err)
-//		}
-//
-//		if resp.StatusCode != 200 {
-//			t.Error("Status code should be 200, but", resp.StatusCode)
-//		}
-//
-//		if body.RestCount != 4 {
-//			t.Error("nextRestCount should be 4, but", body.RestCount)
-//		}
-//
-//		shutdownTestDB()
-//	})
-//}
+func TestGetRestCount(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		setupTestDB(t)
+
+		req, err := http.NewRequest("GET", testUrl+"/pomodoros/next-rest-count", nil)
+		if err != nil {
+			t.Error("Create request failed:", err)
+		}
+
+		resp, err := testClient.Do(req)
+		if err != nil {
+			t.Error("Do request failed:", err)
+		}
+
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Error("Read response failed:", err)
+		}
+		if err := resp.Body.Close(); err != nil {
+			t.Error("Close response failed:", err)
+		}
+
+		var body nextRestCountResponse
+		if err := json.Unmarshal(bytes, &body); err != nil {
+			t.Error("Unmarshal json failed:", err)
+		}
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+		if body.NextRestCount != 4 {
+			t.Error("nextRestCount should be 4, but", body.NextRestCount)
+		}
+
+		shutdownTestDB(t)
+	})
+}

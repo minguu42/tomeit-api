@@ -46,15 +46,6 @@ func AuthorizationError(err error) render.Renderer {
 	}
 }
 
-func renderError(err error) render.Renderer {
-	return &ErrResponse{
-		Err:            err,
-		HTTPStatusCode: 422,
-		StatusText:     "Rendering response failed.",
-		ErrorText:      err.Error(),
-	}
-}
-
 func internalServerError(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,

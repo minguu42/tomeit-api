@@ -1,6 +1,7 @@
 package tomeit
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -44,10 +45,10 @@ WHERE P.id = ?
 	return &p, nil
 }
 
-func (db *DB) getPomodoroRecordsByUser(user *user) ([]*pomodoro, error) {
+func (db *DB) getPomodorosByUser(user *user) ([]*pomodoro, error) {
 	const q = `
-SELECT P.id, P.created_at, T.id, T.title, T.expectedPomodoroNumber, T.dueOn, T.is_done, T.created_at, T.updated_at
-FROM pomodoro_logs AS P
+SELECT P.id, P.completed_at, P.created_at, T.id, T.title, T.expected_pomodoro_number, T.due_on, T.is_completed, T.completed_at,T.created_at, T.updated_at
+FROM pomodoros AS P
 JOIN tasks AS T ON P.task_id = T.id
 WHERE P.user_id = ?
 ORDER BY P.created_at
@@ -57,17 +58,21 @@ LIMIT 30
 
 	rows, err := db.Query(q, user.id)
 	if err != nil {
-		return nil, fmt.Errorf("query failed: %w", err)
+		return nil, fmt.Errorf("db.Query failed: %w", err)
 	}
 
 	for rows.Next() {
 		var t task
+		var nullDueOn sql.NullTime
+		var nullCompletedAt sql.NullTime
 		p := pomodoro{
 			user: user,
 		}
-		if err := rows.Scan(&p.id, &p.createdAt, &t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {
-			return nil, fmt.Errorf("scan failed: %w", err)
+		if err := rows.Scan(&p.id, &p.completedAt, &p.createdAt, &t.id, &t.title, &t.expectedPomodoroNumber, &nullDueOn, &t.isCompleted, &nullCompletedAt, &t.createdAt, &t.updatedAt); err != nil {
+			return nil, fmt.Errorf("rows.Scan failed: %w", err)
 		}
+		t.dueOn = nullDueOn.Time
+		t.completedAt = nullCompletedAt.Time
 		p.task = &t
 		ps = append(ps, &p)
 	}

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 )
 
 func setupTestPostPomodoroRecord(tb testing.TB) {
@@ -88,80 +89,80 @@ func TestPostPomodoroRecord(t *testing.T) {
 	})
 }
 
-//
-//func setupTestGetPomodoroRecords(tb testing.TB) {
-//	const createTask1 = `INSERT INTO tasks (user_id, title, expectedPomodoroNumber, dueOn, is_done) VALUES (1, 'タスク1', 0, '2021-01-01', false)`
-//	const createPomodoroLog1 = `INSERT INTO pomodoro_logs (user_id, task_id) VALUES (1, 1)`
-//	const createPomodoroLog2 = `INSERT INTO pomodoro_logs (user_id, task_id) VALUES (1, 1)`
-//
-//	if _, err := testDB.Exec(createTask1); err != nil {
-//		tb.Fatal("setupTestPostPomodoroLog failed:", err)
-//	}
-//	if _, err := testDB.Exec(createPomodoroLog1); err != nil {
-//		tb.Fatal("setupTestPostPomodoroLog failed:", err)
-//	}
-//	time.Sleep(time.Second)
-//	if _, err := testDB.Exec(createPomodoroLog2); err != nil {
-//		tb.Fatal("setupTestPostPomodoroLog failed:", err)
-//	}
-//}
-//
-//func TestGetPomodoroRecords(t *testing.T) {
-//	t.Run("success", func(t *testing.T) {
-//		setupTestDB()
-//		setupTestGetPomodoroRecords(t)
-//
-//		req, err := http.NewRequest("GET", testUrl+"/pomodoros/records", nil)
-//		if err != nil {
-//			t.Error("Create request failed:", err)
-//		}
-//
-//		resp, err := testClient.Do(req)
-//		if err != nil {
-//			t.Error("Do request failed:", err)
-//		}
-//
-//		bytes, err := io.ReadAll(resp.Body)
-//		if err != nil {
-//			t.Error("Read response failed:", err)
-//		}
-//		if err := resp.Body.Close(); err != nil {
-//			t.Error("Close response failed:", err)
-//		}
-//
-//		var body pomodorosResponse
-//		if err := json.Unmarshal(bytes, &body); err != nil {
-//			t.Error("Unmarshal json failed:", err)
-//		}
-//
-//		if resp.StatusCode != 200 {
-//			t.Error("Status code should be 200, but", resp.StatusCode)
-//		}
-//
-//		if len(body.Pomodoros) != 2 {
-//			t.Error("Pomodoros should have 2 pomodoro, but", len(body.Pomodoros))
-//		}
-//
-//		pomodoroRecord1 := body.Pomodoros[0]
-//		if pomodoroRecord1.ID != 1 {
-//			t.Error("ID should be 1, but", pomodoroRecord1.ID)
-//		}
-//		if pomodoroRecord1.CreatedAt == "" {
-//			t.Error("CreatedAt does not exist")
-//		}
-//
-//		pomodoroRecord2 := body.Pomodoros[1]
-//		if pomodoroRecord2.ID != 2 {
-//			t.Error("ID should be 2, but", pomodoroRecord2.ID)
-//		}
-//		if pomodoroRecord2.CreatedAt == "" {
-//			t.Error("CreatedAt does not exist")
-//		}
-//
-//		shutdownTestDB()
-//	})
-//}
-//
+func setupTestGetPomodoros(tb testing.TB) {
+	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, is_completed) VALUES (1, 'タスク1', 0, false)`
+	const createPomodoro1 = `INSERT INTO pomodoros (user_id, task_id) VALUES (1, 1)`
+	const createPomodoro2 = `INSERT INTO pomodoros (user_id, task_id) VALUES (1, 1)`
+
+	if _, err := testDB.Exec(createTask1); err != nil {
+		tb.Fatal("create Task1 failed:", err)
+	}
+	if _, err := testDB.Exec(createPomodoro1); err != nil {
+		tb.Fatal("create Pomodoro1 failed:", err)
+	}
+	time.Sleep(time.Second * 1)
+	if _, err := testDB.Exec(createPomodoro2); err != nil {
+		tb.Fatal("create Pomodoro2 failed:", err)
+	}
+}
+
+func TestGetPomodoros(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		setupTestDB(t)
+		setupTestGetPomodoros(t)
+
+		req, err := http.NewRequest("GET", testUrl+"/pomodoros", nil)
+		if err != nil {
+			t.Error("Create request failed:", err)
+		}
+
+		resp, err := testClient.Do(req)
+		if err != nil {
+			t.Error("Do request failed:", err)
+		}
+
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Error("Read response failed:", err)
+		}
+		if err := resp.Body.Close(); err != nil {
+			t.Error("Close response failed:", err)
+		}
+
+		var body pomodorosResponse
+		if err := json.Unmarshal(bytes, &body); err != nil {
+			t.Error("Unmarshal json failed:", err)
+		}
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+
+		if len(body.Pomodoros) != 2 {
+			t.Error("Pomodoros should have 2 pomodoro, but", len(body.Pomodoros))
+		}
+		pomodoroRecord1 := body.Pomodoros[0]
+		if pomodoroRecord1.Task.ActualPomodoroNumber != 2 {
+			t.Error("Task1's ActualPomodoroNumber should be 2, but", pomodoroRecord1.Task.ActualPomodoroNumber)
+		}
+		if pomodoroRecord1.ID != 1 {
+			t.Error("ID should be 1, but", pomodoroRecord1.ID)
+		}
+		if pomodoroRecord1.CreatedAt == "" {
+			t.Error("CreatedAt does not exist")
+		}
+		pomodoroRecord2 := body.Pomodoros[1]
+		if pomodoroRecord2.ID != 2 {
+			t.Error("ID should be 2, but", pomodoroRecord2.ID)
+		}
+		if pomodoroRecord2.CreatedAt == "" {
+			t.Error("CreatedAt does not exist")
+		}
+
+		shutdownTestDB(t)
+	})
+}
+
 //func TestGetRestCount(t *testing.T) {
 //	t.Run("success", func(t *testing.T) {
 //		setupTestDB()

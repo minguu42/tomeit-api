@@ -97,20 +97,20 @@ func PostPomodoro(db dbInterface) http.HandlerFunc {
 	}
 }
 
-func GetPomodoroRecords(db dbInterface) http.HandlerFunc {
+func GetPomodoros(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := r.Context().Value(userKey).(*user)
 
-		pomodoroLogs, err := db.getPomodoroRecordsByUser(user)
+		pomodoros, err := db.getPomodorosByUser(user)
 		if err != nil {
-			log.Println("getPomodoroRecordsByUser failed:", err)
-			_ = render.Render(w, r, errNotFound())
+			log.Println("db.getPomodorosByUser failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
-		if err := render.Render(w, r, newPomodorosResponse(pomodoroLogs, db)); err != nil {
-			log.Println("render failed:", err)
-			_ = render.Render(w, r, renderError(err))
+		if err := render.Render(w, r, newPomodorosResponse(pomodoros, db)); err != nil {
+			log.Println("render.Render failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
 			return
 		}
 	}

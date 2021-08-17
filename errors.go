@@ -46,13 +46,6 @@ func AuthorizationError(err error) render.Renderer {
 	}
 }
 
-func errNotFound() render.Renderer {
-	return &ErrResponse{
-		HTTPStatusCode: 404,
-		StatusText:     "Resource not found.",
-	}
-}
-
 func renderError(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,

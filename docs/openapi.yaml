@@ -173,7 +173,7 @@ paths:
       description: |
         ポモドーロ記録を一覧で取得する
 
-        更新順で最大30件まで取得する.
+        作成順で最大30件まで取得する.
       parameters:
         - $ref: "#/components/parameters/id-token"
         - name: completed-at

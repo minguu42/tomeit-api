@@ -30,7 +30,7 @@ func (db *DB) createUser(digestUID string) (*user, error) {
 }
 
 func (db *DB) getUserByDigestUID(digestUID string) (*user, error) {
-	const q = `SELECT * FROM users WHERE digest_uid = ?`
+	const q = `SELECT id, digest_uid, next_rest_count, created_at FROM users WHERE digest_uid = ?`
 
 	var u user
 	if err := db.QueryRow(q, digestUID).Scan(&u.id, &u.digestUID, &u.nextRestCount, &u.createdAt); err != nil {

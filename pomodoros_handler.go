@@ -12,7 +12,7 @@ import (
 type pomodoroResponse struct {
 	ID          int64         `json:"id"`
 	Task        *taskResponse `json:"task"`
-	CompletedAt string        `json:"completedAt"`
+	CompletedAt string        `json:"completedOn"`
 	CreatedAt   string        `json:"createdAt"`
 }
 
@@ -99,9 +99,26 @@ func PostPomodoro(db dbInterface) http.HandlerFunc {
 
 func GetPomodoros(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		existCompletedOn := true
+		completedOnStr := r.URL.Query().Get("completed-on")
+		completedOn, err := time.Parse(time.RFC3339, completedOnStr)
+		if err != nil {
+			if completedOnStr == "" {
+				existCompletedOn = false
+			} else {
+				_ = render.Render(w, r, badRequestError(errors.New("completed-on value is invalid")))
+				return
+			}
+		}
+
+		options := getPomodorosOptions{
+			existCompletedOn: existCompletedOn,
+			completedOn:      completedOn,
+		}
+
 		user := r.Context().Value(userKey).(*user)
 
-		pomodoros, err := db.getPomodorosByUser(user)
+		pomodoros, err := db.getPomodorosByUser(user, &options)
 		if err != nil {
 			log.Println("db.getPomodorosByUser failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
@@ -116,20 +133,20 @@ func GetPomodoros(db dbInterface) http.HandlerFunc {
 	}
 }
 
-type restCountResponse struct {
-	RestCount int `json:"nextRestCount"`
+type nextRestCountResponse struct {
+	NextRestCount int `json:"nextRestCount"`
 }
 
-func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
+func (c *nextRestCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func GetRestCount(w http.ResponseWriter, r *http.Request) {
+func GetNextRestCount(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(userKey).(*user)
 
-	if err := render.Render(w, r, &restCountResponse{RestCount: user.nextRestCount}); err != nil {
-		log.Println("render failed:", err)
-		_ = render.Render(w, r, renderError(err))
+	if err := render.Render(w, r, &nextRestCountResponse{NextRestCount: user.nextRestCount}); err != nil {
+		log.Println("render.Render failed:", err)
+		_ = render.Render(w, r, internalServerError(err))
 		return
 	}
 }

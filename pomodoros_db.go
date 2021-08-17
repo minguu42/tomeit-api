@@ -24,7 +24,7 @@ func (db *DB) createPomodoro(userID, taskID int64) (int64, error) {
 
 func (db *DB) getPomodoroByID(id int64) (*pomodoro, error) {
 	const q = `
-SELECT P.completed_at, P.created_at, U.id, U.digest_uid, T.id, T.title, T.expected_pomodoro_number, T.due_on, T.is_completed, T.created_at, T.updated_at
+SELECT P.completed_at, P.created_at, U.id, U.digest_uid, T.id, T.title, T.expected_pomodoro_number, T.due_on, T.is_completed, T.completed_at,T.created_at, T.updated_at
 FROM pomodoros AS P
 JOIN users AS U ON P.user_id = U.id
 JOIN tasks AS T ON P.task_id = T.id
@@ -33,29 +33,49 @@ WHERE P.id = ?
 
 	var u user
 	var t task
+	var nullDueOn sql.NullTime
+	var nullCompletedAt sql.NullTime
 	p := pomodoro{
 		id:   id,
 		user: &u,
 		task: &t,
 	}
-	if err := db.QueryRow(q, id).Scan(&p.completedAt, &p.createdAt, &u.id, &u.digestUID, &t.id, &t.title, &t.expectedPomodoroNumber, &t.dueOn, &t.isCompleted, &t.createdAt, &t.updatedAt); err != nil {
+	if err := db.QueryRow(q, id).Scan(&p.completedAt, &p.createdAt, &u.id, &u.digestUID, &t.id, &t.title, &t.expectedPomodoroNumber, &nullDueOn, &t.isCompleted, &nullCompletedAt, &t.createdAt, &t.updatedAt); err != nil {
 		return nil, fmt.Errorf("row.Scan failed: %w", err)
 	}
+	t.dueOn = nullDueOn.Time
+	t.completedAt = nullCompletedAt.Time
 
 	return &p, nil
 }
 
-func (db *DB) getPomodorosByUser(user *user) ([]*pomodoro, error) {
-	const q = `
+type getPomodorosOptions struct {
+	existCompletedOn bool
+	completedOn      time.Time
+}
+
+func (db *DB) getPomodorosByUser(user *user, options *getPomodorosOptions) ([]*pomodoro, error) {
+	var optionList []string
+	if options != nil {
+		if options.existCompletedOn {
+			optionList = append(optionList, "AND DATE(P.completed_at) = '"+options.completedOn.Format("2006-01-02")+"'")
+		}
+	}
+
+	q := `
 SELECT P.id, P.completed_at, P.created_at, T.id, T.title, T.expected_pomodoro_number, T.due_on, T.is_completed, T.completed_at,T.created_at, T.updated_at
 FROM pomodoros AS P
 JOIN tasks AS T ON P.task_id = T.id
 WHERE P.user_id = ?
+`
+	for _, option := range optionList {
+		q = q + option
+	}
+	q = q + `
 ORDER BY P.created_at
 LIMIT 30
 `
 	var ps []*pomodoro
-
 	rows, err := db.Query(q, user.id)
 	if err != nil {
 		return nil, fmt.Errorf("db.Query failed: %w", err)
@@ -78,19 +98,4 @@ LIMIT 30
 	}
 
 	return ps, nil
-}
-
-func (db *DB) getTodayPomodoroCount(user *user) (int, error) {
-	today := time.Now().UTC().Format("2006-01-02")
-
-	const q = `
-SELECT COUNT(*) FROM pomodoro_logs
-WHERE user_id = ? AND DATE(created_at) = ?
-`
-	var c int
-
-	if err := db.QueryRow(q, user.id, today).Scan(&c); err != nil {
-		return 0, fmt.Errorf("row.Scan failed: %w", err)
-	}
-	return c, nil
 }

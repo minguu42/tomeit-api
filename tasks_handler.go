@@ -18,7 +18,7 @@ type taskResponse struct {
 	ActualPomodoroNumber   int    `json:"actualPomodoroNumber"`
 	DueOn                  string `json:"dueOn"`
 	IsCompleted            bool   `json:"isCompleted"`
-	CompletedAt            string `json:"completedAt"`
+	CompletedAt            string `json:"completedOn"`
 	CreatedAt              string `json:"createdAt"`
 	UpdatedAt              string `json:"updatedAt"`
 }
@@ -136,14 +136,14 @@ func GetTasks(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		existCompletedAt := true
-		completedAtStr := r.URL.Query().Get("completed-at")
-		completedAt, err := time.Parse(time.RFC3339, completedAtStr)
+		existCompletedOn := true
+		completedOnStr := r.URL.Query().Get("completed-on")
+		completedOn, err := time.Parse(time.RFC3339, completedOnStr)
 		if err != nil {
-			if completedAtStr == "" {
-				existCompletedAt = false
+			if completedOnStr == "" {
+				existCompletedOn = false
 			} else {
-				_ = render.Render(w, r, badRequestError(errors.New("completed-at value is invalid")))
+				_ = render.Render(w, r, badRequestError(errors.New("completed-on value is invalid")))
 				return
 			}
 		}
@@ -151,8 +151,8 @@ func GetTasks(db dbInterface) http.HandlerFunc {
 		options := getTasksOptions{
 			existIsCompleted: existIsCompleted,
 			isCompleted:      isCompleted,
-			existCompletedAt: existCompletedAt,
-			completedAt:      completedAt,
+			existCompletedOn: existCompletedOn,
+			completedOn:      completedOn,
 		}
 
 		user := r.Context().Value(userKey).(*user)

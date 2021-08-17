@@ -11,22 +11,6 @@ import (
 	"github.com/go-chi/render"
 )
 
-type taskRequest struct {
-	Title                  string `json:"title"`
-	ExpectedPomodoroNumber int    `json:"expectedPomodoroNumber,omitempty"`
-	DueOn                  string `json:"dueOn,omitempty"`
-}
-
-func (t *taskRequest) Bind(r *http.Request) error {
-	if t.Title == "" {
-		return errors.New("missing required title field")
-	}
-	if t.DueOn == "" {
-		t.DueOn = "0001-01-01T00:00:00Z"
-	}
-	return nil
-}
-
 type taskResponse struct {
 	ID                     int64  `json:"id"`
 	Title                  string `json:"title"`
@@ -79,9 +63,25 @@ func (ts *tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+type postTaskRequest struct {
+	Title                  string `json:"title"`
+	ExpectedPomodoroNumber int    `json:"expectedPomodoroNumber,omitempty"`
+	DueOn                  string `json:"dueOn,omitempty"`
+}
+
+func (p *postTaskRequest) Bind(r *http.Request) error {
+	if p.Title == "" {
+		return errors.New("missing required title field")
+	}
+	if p.DueOn == "" {
+		p.DueOn = "0001-01-01T00:00:00Z"
+	}
+	return nil
+}
+
 func PostTask(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := &taskRequest{}
+		data := &postTaskRequest{}
 		if err := render.Bind(r, data); err != nil {
 			log.Println("render.Bind failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
@@ -172,44 +172,64 @@ func GetTasks(db dbInterface) http.HandlerFunc {
 	}
 }
 
-func PutTaskDone(db dbInterface) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		taskIDStr := chi.URLParam(r, "taskID")
-		if taskIDStr == "" {
-			_ = render.Render(w, r, errNotFound())
-			return
-		}
+type patchTaskRequest struct {
+	IsCompleted bool `json:"isCompleted"`
+}
 
-		taskID, err := strconv.ParseInt(taskIDStr, 10, 64)
+func (p *patchTaskRequest) Bind(r *http.Request) error {
+	return nil
+}
+
+func PatchTask(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		taskID, err := strconv.ParseInt(chi.URLParam(r, "task-id"), 10, 64)
 		if err != nil {
-			log.Println("parseInt failed:", err)
+			log.Println("strconv.ParseInt failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
 		user := r.Context().Value(userKey).(*user)
 
-		if !hasUserTask(db, taskID, user) {
-			_ = render.Render(w, r, AuthenticationError(errors.New("you do not have this task")))
-			return
-		}
-
-		if err := db.doneTask(taskID); err != nil {
-			log.Println("doneTask failed:", err)
-			_ = render.Render(w, r, badRequestError(err))
-			return
-		}
-
 		task, err := db.getTaskByID(taskID)
 		if err != nil {
-			log.Println("getTaskByID failed:", err)
+			log.Println("db.getTaskByID failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+		if user.id != task.user.id {
+			log.Println("user.id != task.user.id")
+			_ = render.Render(w, r, AuthorizationError(errors.New("task's userID does not match your userID")))
+			return
+		}
+
+		data := &patchTaskRequest{}
+		if err := render.Bind(r, data); err != nil {
+			log.Println("render.Bind failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
-		if err = render.Render(w, r, newTaskResponse(task, db)); err != nil {
-			log.Println("render failed:", err)
-			_ = render.Render(w, r, renderError(err))
+		options := updateTaskOptions{
+			existIsCompleted: true,
+		}
+
+		task.isCompleted = data.IsCompleted
+		if err := db.updateTask(task, &options); err != nil {
+			log.Println("db.updateTask failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+
+		task, err = db.getTaskByID(task.id)
+		if err != nil {
+			log.Println("db.getTaskByID failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
+			return
+		}
+		if err := render.Render(w, r, newTaskResponse(task, db)); err != nil {
+			log.Println("render.Render failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
 			return
 		}
 	}

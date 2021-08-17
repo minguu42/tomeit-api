@@ -37,6 +37,15 @@ func AuthenticationError(err error) render.Renderer {
 	}
 }
 
+func AuthorizationError(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 403,
+		StatusText:     "You do not have permission to access the resource",
+		ErrorText:      err.Error(),
+	}
+}
+
 func errNotFound() render.Renderer {
 	return &ErrResponse{
 		HTTPStatusCode: 404,

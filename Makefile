@@ -6,6 +6,10 @@ dev:
 down:
 	@docker compose down
 
+.PHONY: docs
+docs:
+	@docker compose up -d docs
+
 .PHONY: test
 test:
 	@docker compose up -d db-test

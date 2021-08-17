@@ -40,10 +40,7 @@ func main() {
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", tomeit.PostTask(db))
 		r.Get("/", tomeit.GetTasks(db))
-
-		r.Route("/done", func(r chi.Router) {
-			r.Put("/{taskID}", tomeit.PutTaskDone(db))
-		})
+		r.Patch("/{task-id}", tomeit.PatchTask(db))
 	})
 	r.Route("/pomodoros", func(r chi.Router) {
 		r.Route("/records", func(r chi.Router) {

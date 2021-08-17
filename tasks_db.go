@@ -2,6 +2,7 @@ package tomeit
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -112,13 +113,35 @@ func (db *DB) getActualPomodoroNumberByID(id int64) (int, error) {
 	return c, nil
 }
 
-func (db *DB) doneTask(taskID int64) error {
-	const q = `UPDATE tasks SET is_done = TRUE WHERE id = ?`
+type updateTaskOptions struct {
+	existIsCompleted bool
+}
 
-	_, err := db.Exec(q, taskID)
-	if err != nil {
-		return fmt.Errorf("exec failed: %w", err)
+func (db *DB) updateTask(task *task, options *updateTaskOptions) error {
+	if options == nil {
+		return errors.New("options must not be nil")
 	}
 
+	var optionList []string
+	if options.existIsCompleted {
+		optionList = append(optionList, "is_completed = "+strconv.FormatBool(task.isCompleted))
+		now := time.Now()
+		optionList = append(optionList, "completed_at = '"+now.Format("2006-01-02 15:04:05")+"'")
+	}
+
+	q := `UPDATE tasks SET`
+	for i, option := range optionList {
+		if i == 0 {
+			q = q + " " + option + " "
+		} else {
+			q = q + ", " + option + " "
+		}
+	}
+	q = q + `WHERE id = ?`
+
+	_, err := db.Exec(q, task.id)
+	if err != nil {
+		return fmt.Errorf("db.Exec failed: %w", err)
+	}
 	return nil
 }

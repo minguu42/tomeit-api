@@ -33,10 +33,7 @@ func TestMain(m *testing.M) {
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", PostTask(testDB))
 		r.Get("/", GetTasks(testDB))
-
-		r.Route("/done", func(r chi.Router) {
-			r.Put("/{taskID}", PutTaskDone(testDB))
-		})
+		r.Patch("/{task-id}", PatchTask(testDB))
 	})
 	r.Route("/pomodoros", func(r chi.Router) {
 		r.Route("/records", func(r chi.Router) {

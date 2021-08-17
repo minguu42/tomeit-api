@@ -13,16 +13,3 @@ type task struct {
 	createdAt              time.Time
 	updatedAt              time.Time
 }
-
-func hasUserTask(db dbInterface, taskID int64, user *user) bool {
-	task, err := db.getTaskByID(taskID)
-	if err != nil {
-		return false
-	}
-
-	if task.user.id == user.id {
-		return true
-	} else {
-		return false
-	}
-}

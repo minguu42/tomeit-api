@@ -159,7 +159,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PomodoroRecord"
+                $ref: "#/components/schemas/Pomodoro"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":
@@ -191,12 +191,12 @@ paths:
               schema:
                 type: object
                 required:
-                  - pomodoroRecords
+                  - pomodoros
                 properties:
-                  pomodoroRecords:
+                  pomodoros:
                     type: array
                     items:
-                      $ref: "#/components/schemas/PomodoroRecord"
+                      $ref: "#/components/schemas/Pomodoro"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":

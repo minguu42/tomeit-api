@@ -9,7 +9,7 @@ import (
 type dbInterface interface {
 	createUser(digestUID string) (*user, error)
 	getUserByDigestUID(digestUID string) (*user, error)
-	decrementRestCount(user *user) error
+	decrementNextRestCount(user *user) error
 
 	createTask(userID int64, name string, priority int, deadline time.Time) (int64, error)
 	getTaskByID(id int64) (*task, error)
@@ -17,9 +17,9 @@ type dbInterface interface {
 	getActualPomodoroNumberByID(id int64) (int, error)
 	updateTask(task *task, options *updateTaskOptions) error
 
-	createPomodoroRecord(userID, taskID int64) (int64, error)
-	getPomodoroRecordByID(id int64) (*pomodoroRecord, error)
-	getPomodoroRecordsByUser(user *user) ([]*pomodoroRecord, error)
+	createPomodoro(userID, taskID int64) (int64, error)
+	getPomodoroByID(id int64) (*pomodoro, error)
+	getPomodoroRecordsByUser(user *user) ([]*pomodoro, error)
 	getTodayPomodoroCount(user *user) (int, error)
 }
 

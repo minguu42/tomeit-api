@@ -36,10 +36,9 @@ func TestMain(m *testing.M) {
 		r.Patch("/{task-id}", PatchTask(testDB))
 	})
 	r.Route("/pomodoros", func(r chi.Router) {
+		r.Post("/", PostPomodoro(testDB))
 		r.Route("/records", func(r chi.Router) {
-			r.Post("/", PostPomodoroRecord(testDB))
 			r.Get("/", GetPomodoroRecords(testDB))
-			r.Get("/count/today", GetTodayPomodoroCount(testDB))
 		})
 
 		r.Get("/rest-count", GetRestCount)

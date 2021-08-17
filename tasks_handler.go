@@ -81,14 +81,14 @@ func (p *postTaskRequest) Bind(r *http.Request) error {
 
 func PostTask(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := &postTaskRequest{}
-		if err := render.Bind(r, data); err != nil {
+		reqBody := &postTaskRequest{}
+		if err := render.Bind(r, reqBody); err != nil {
 			log.Println("render.Bind failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
-		dueOn, err := time.Parse(time.RFC3339, data.DueOn)
+		dueOn, err := time.Parse(time.RFC3339, reqBody.DueOn)
 		if err != nil {
 			log.Println("time.Parse failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
@@ -97,7 +97,7 @@ func PostTask(db dbInterface) http.HandlerFunc {
 
 		user := r.Context().Value(userKey).(*user)
 
-		taskID, err := db.createTask(user.id, data.Title, data.ExpectedPomodoroNumber, dueOn)
+		taskID, err := db.createTask(user.id, reqBody.Title, reqBody.ExpectedPomodoroNumber, dueOn)
 		if err != nil {
 			log.Println("db.createTask failed:", err)
 			_ = render.Render(w, r, badRequestError(err))

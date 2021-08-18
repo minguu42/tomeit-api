@@ -28,7 +28,7 @@ make dev
 
 [TODO: GitHub Pages で Swagger UI をホスティングしたら追加する]: <> (## ドキュメント)
 
-[comment]: <> (この API のエンドポイントは[こちら]&#40;GitHub PagesのURL&#41;に載っています.)
+[comment]: <> (この API のエンドポイントは[こちら]&#40;GitHub Pages の URL&#41;に載っています.)
 
 ## 開発環境
 
@@ -59,7 +59,7 @@ make test
 ### ローカル実行
 
 ```bash
-make dev 
+make dev
 # 終了時
 make down
 ```

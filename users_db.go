@@ -10,7 +10,7 @@ func (db *DB) createUser(digestUID string) (*user, error) {
 
 	const q = `INSERT INTO users (digest_uid, created_at) VALUES (?, ?)`
 
-	r, err := db.Exec(q, digestUID)
+	r, err := db.Exec(q, digestUID, createdAt)
 	if err != nil {
 		return nil, fmt.Errorf("db.Exec failed: %w", err)
 	}

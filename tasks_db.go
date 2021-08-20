@@ -58,10 +58,10 @@ func (db *DB) getTasksByUser(user *user, options *getTasksOptions) ([]*task, err
 	var optionList []string
 	if options != nil {
 		if options.existIsCompleted {
-			optionList = append(optionList, "AND is_completed = "+strconv.FormatBool(options.isCompleted))
+			optionList = append(optionList, " AND is_completed = "+strconv.FormatBool(options.isCompleted))
 		}
 		if options.existCompletedOn {
-			optionList = append(optionList, "AND DATE(completed_at) = '"+options.completedOn.Format("2006-01-02")+"'")
+			optionList = append(optionList, " AND DATE(completed_at) = '"+options.completedOn.Format("2006-01-02")+"' ")
 		}
 	}
 

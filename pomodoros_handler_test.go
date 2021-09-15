@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func setupTestPostPomodoroRecord(tb testing.TB) {
+func setupTestPostPomodoro(tb testing.TB) {
 	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, due_on, is_completed) VALUES (1, 'タスク1', 0, '2018-12-31', false)`
 
 	if _, err := testDB.Exec(createTask1); err != nil {
@@ -17,10 +17,10 @@ func setupTestPostPomodoroRecord(tb testing.TB) {
 	}
 }
 
-func TestPostPomodoroRecord(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
+func TestPostPomodoro(t *testing.T) {
+	t.Run("ポモドーロを記録する", func(t *testing.T) {
 		setupTestDB(t)
-		setupTestPostPomodoroRecord(t)
+		setupTestPostPomodoro(t)
 
 		reqBody := strings.NewReader(`{"taskID": 1 }`)
 		req, err := http.NewRequest("POST", testUrl+"/pomodoros", reqBody)
@@ -84,7 +84,7 @@ func TestPostPomodoroRecord(t *testing.T) {
 		if body.CompletedAt == "0001-01-01T00:00:00Z" {
 			t.Error("CompletedAt should not be 0001-01-01T00:00:00Z")
 		}
-		if body.CreatedAt == "" {
+		if body.CreatedAt == "0001-01-01T00:00:00Z" {
 			t.Error("CreatedAt does not exist")
 		}
 
@@ -110,7 +110,7 @@ func setupTestGetPomodoros(tb testing.TB) {
 }
 
 func TestGetPomodoros(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
+	t.Run("ポモドーロ記録を一覧取得する", func(t *testing.T) {
 		setupTestDB(t)
 		setupTestGetPomodoros(t)
 
@@ -170,7 +170,7 @@ func TestGetPomodoros(t *testing.T) {
 
 		shutdownTestDB(t)
 	})
-	t.Run("success with completed-at query parameter", func(t *testing.T) {
+	t.Run("2021年8月31日に実行したポモドーロの記録を一覧取得する", func(t *testing.T) {
 		setupTestDB(t)
 		setupTestGetPomodoros(t)
 
@@ -227,7 +227,7 @@ func TestGetPomodoros(t *testing.T) {
 }
 
 func TestGetRestCount(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
+	t.Run("次の15分休憩までのカウントを取得する", func(t *testing.T) {
 		setupTestDB(t)
 
 		req, err := http.NewRequest("GET", testUrl+"/pomodoros/next-rest-count", nil)

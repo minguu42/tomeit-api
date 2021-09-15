@@ -106,6 +106,7 @@ paths:
 
         task-id で更新する一意のタスクを特定する.
         現在は isCompleted の値のみ変更できる.
+        isCompleted は文字列の true, false のみを受けつける.
       parameters:
         - $ref: "#/components/parameters/id-token"
         - $ref: "#/components/parameters/task-id"
@@ -117,8 +118,8 @@ paths:
               type: object
               properties:
                 isCompleted:
-                  type: boolean
-                  example: true
+                  type: string
+                  example: "true"
       responses:
         "200":
           description: 成功

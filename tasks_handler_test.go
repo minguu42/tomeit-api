@@ -319,18 +319,22 @@ func TestGetTasks(t *testing.T) {
 
 func setupTestPutTaskDone(tb testing.TB) {
 	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, is_completed) VALUES (1, 'タスク1', 0, false)`
+	const createTask2 = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, is_completed) VALUES (1, 'タスク2', 3, true)`
 
 	if _, err := testDB.Exec(createTask1); err != nil {
 		tb.Fatal("createTask1 failed:", err)
 	}
+	if _, err := testDB.Exec(createTask2); err != nil {
+		tb.Fatal("createTask2 failed:", err)
+	}
 }
 
 func TestPatchTask(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
+	t.Run("タスク1の isCompleted の値を true に変更する", func(t *testing.T) {
 		setupTestDB(t)
 		setupTestPutTaskDone(t)
 
-		reqBody := strings.NewReader(`{"isCompleted": true}`)
+		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
 		req, err := http.NewRequest("PATCH", testUrl+"/tasks/1", reqBody)
 		if err != nil {
 			t.Error("Create request failed:", err)
@@ -355,7 +359,7 @@ func TestPatchTask(t *testing.T) {
 		}
 
 		if resp.StatusCode != 200 {
-			t.Error("Status code should be 201, but", resp.StatusCode)
+			t.Error("Status code should be 200, but", resp.StatusCode)
 		}
 		if body.ID != 1 {
 			t.Error("Id should be 1, but", body.ID)
@@ -374,6 +378,67 @@ func TestPatchTask(t *testing.T) {
 		}
 		if body.IsCompleted != true {
 			t.Error("IsCompleted should be true, but", body.IsCompleted)
+		}
+		if body.CompletedAt == "" {
+			t.Error("CompletedAt does not exist")
+		}
+		if body.CreatedAt == "" {
+			t.Error("CreatedAt does not exist")
+		}
+		if body.UpdatedAt == "" {
+			t.Error("UpdatedAt does not exist")
+		}
+
+		shutdownTestDB(t)
+	})
+	t.Run("タスク2の isCompleted の値を false に変更する", func(t *testing.T) {
+		setupTestDB(t)
+		setupTestPutTaskDone(t)
+
+		reqBody := strings.NewReader(`{"isCompleted": "false"}`)
+		req, err := http.NewRequest("PATCH", testUrl+"/tasks/2", reqBody)
+		if err != nil {
+			t.Error("Create request failed:", err)
+		}
+
+		resp, err := testClient.Do(req)
+		if err != nil {
+			t.Error("Do request failed:", err)
+		}
+
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Error("Read response failed:", err)
+		}
+		if err := resp.Body.Close(); err != nil {
+			t.Error("Close response failed:", err)
+		}
+
+		var body taskResponse
+		if err := json.Unmarshal(bytes, &body); err != nil {
+			t.Error("Unmarshal json failed:", err)
+		}
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+		if body.ID != 2 {
+			t.Error("Id should be 1, but", body.ID)
+		}
+		if body.Title != "タスク2" {
+			t.Error("Title should be タスク1, but", body.Title)
+		}
+		if body.ExpectedPomodoroNumber != 3 {
+			t.Error("ExpectedPomodoroNumber should be 0, but", body.ExpectedPomodoroNumber)
+		}
+		if body.ActualPomodoroNumber != 0 {
+			t.Error("ActualPomodoroNumber should be 0, but", body.ActualPomodoroNumber)
+		}
+		if body.DueOn != "0001-01-01T00:00:00Z" {
+			t.Error("DueOn should be 0001-01-01, but", body.DueOn)
+		}
+		if body.IsCompleted != false {
+			t.Error("IsCompleted should be false, but", body.IsCompleted)
 		}
 		if body.CompletedAt == "" {
 			t.Error("CompletedAt does not exist")

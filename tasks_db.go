@@ -114,7 +114,7 @@ func (db *DB) getActualPomodoroNumberByID(id int64) (int, error) {
 }
 
 type updateTaskOptions struct {
-	existIsCompleted bool
+	isCompletedExists bool
 }
 
 func (db *DB) updateTask(task *task, options *updateTaskOptions) error {
@@ -123,7 +123,7 @@ func (db *DB) updateTask(task *task, options *updateTaskOptions) error {
 	}
 
 	var optionList []string
-	if options.existIsCompleted {
+	if options.isCompletedExists {
 		optionList = append(optionList, "is_completed = "+strconv.FormatBool(task.isCompleted))
 		now := time.Now()
 		optionList = append(optionList, "completed_at = '"+now.Format("2006-01-02 15:04:05")+"'")

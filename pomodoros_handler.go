@@ -12,7 +12,7 @@ import (
 type pomodoroResponse struct {
 	ID          int64         `json:"id"`
 	Task        *taskResponse `json:"task"`
-	CompletedAt string        `json:"completedOn"`
+	CompletedAt string        `json:"completedAt"`
 	CreatedAt   string        `json:"createdAt"`
 }
 

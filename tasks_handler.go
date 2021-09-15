@@ -173,7 +173,7 @@ func GetTasks(db dbInterface) http.HandlerFunc {
 }
 
 type patchTaskRequest struct {
-	IsCompleted bool `json:"isCompleted"`
+	IsCompleted string `json:"isCompleted"`
 }
 
 func (p *patchTaskRequest) Bind(r *http.Request) error {
@@ -210,11 +210,21 @@ func PatchTask(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		options := updateTaskOptions{
-			existIsCompleted: true,
+		options := updateTaskOptions{}
+
+		if data.IsCompleted == "true" {
+			options.isCompletedExists = true
+			task.isCompleted = true
+		} else if data.IsCompleted == "false" {
+			options.isCompletedExists = true
+			task.isCompleted = false
+		} else if data.IsCompleted == "" {
+			options.isCompletedExists = false
+		} else {
+			_ = render.Render(w, r, badRequestError(err))
+			return
 		}
 
-		task.isCompleted = data.IsCompleted
 		if err := db.updateTask(task, &options); err != nil {
 			log.Println("db.updateTask failed:", err)
 			_ = render.Render(w, r, badRequestError(err))

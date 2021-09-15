@@ -3,7 +3,7 @@ openapi: 3.0.3
 info:
   title: tomeit API 仕様書
   description: tomeit の REST API の仕様書である.
-  version: 0.2.0
+  version: 0.2.1
 
 servers:
   - url: http://localhost:8080/v0
@@ -203,13 +203,13 @@ paths:
           $ref: "#/components/responses/AuthenticationError"
         "405":
           $ref: "#/components/responses/MethodError"
-  /pomodoros/next-rest-count:
+  /pomodoros/rest-count:
     get:
       summary: 次の15分休憩までのカウント取得 API
       tags:
         - pomodoros
       description: |
-        次の15分休憩までの実行する必要のあるポモドーロの数を取得する
+        次の15分休憩までのカウント（次の15分休憩までに実行する必要のあるポモドーロの数）を取得する
       parameters:
         - $ref: "#/components/parameters/id-token"
       responses:
@@ -220,7 +220,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  nextRestCount:
+                  restCount:
                     type: integer
                     example: 3
         "401":

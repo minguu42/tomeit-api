@@ -82,8 +82,8 @@ func PostPomodoro(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		if err := db.decrementNextRestCount(user); err != nil {
-			log.Println("db.decrementNextRestCount failed:", err)
+		if err := db.decrementRestCount(user); err != nil {
+			log.Println("db.decrementRestCount failed:", err)
 			_ = render.Render(w, r, internalServerError(err))
 			return
 		}
@@ -133,18 +133,18 @@ func GetPomodoros(db dbInterface) http.HandlerFunc {
 	}
 }
 
-type nextRestCountResponse struct {
-	NextRestCount int `json:"nextRestCount"`
+type restCountResponse struct {
+	RestCount int `json:"restCount"`
 }
 
-func (c *nextRestCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
+func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
 func GetNextRestCount(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(userKey).(*user)
 
-	if err := render.Render(w, r, &nextRestCountResponse{NextRestCount: user.nextRestCount}); err != nil {
+	if err := render.Render(w, r, &restCountResponse{RestCount: user.restCount}); err != nil {
 		log.Println("render.Render failed:", err)
 		_ = render.Render(w, r, internalServerError(err))
 		return

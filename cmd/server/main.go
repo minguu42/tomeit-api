@@ -46,7 +46,7 @@ func main() {
 		r.Post("/", tomeit.PostPomodoro(db))
 		r.Get("/", tomeit.GetPomodoros(db))
 
-		r.Get("/next-rest-count", tomeit.GetNextRestCount)
+		r.Get("/rest-count", tomeit.GetNextRestCount)
 	})
 
 	port := os.Getenv("PORT")

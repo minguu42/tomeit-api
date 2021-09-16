@@ -317,7 +317,7 @@ func TestGetTasks(t *testing.T) {
 	})
 }
 
-func setupTestPutTaskDone(tb testing.TB) {
+func setupTestPatchTask(tb testing.TB) {
 	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, is_completed) VALUES (1, 'タスク1', 0, false)`
 	const createTask2 = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, is_completed) VALUES (1, 'タスク2', 3, true)`
 
@@ -332,7 +332,7 @@ func setupTestPutTaskDone(tb testing.TB) {
 func TestPatchTask(t *testing.T) {
 	t.Run("タスク1の isCompleted の値を true に変更する", func(t *testing.T) {
 		setupTestDB(t)
-		setupTestPutTaskDone(t)
+		setupTestPatchTask(t)
 
 		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
 		req, err := http.NewRequest("PATCH", testUrl+"/tasks/1", reqBody)
@@ -393,7 +393,7 @@ func TestPatchTask(t *testing.T) {
 	})
 	t.Run("タスク2の isCompleted の値を false に変更する", func(t *testing.T) {
 		setupTestDB(t)
-		setupTestPutTaskDone(t)
+		setupTestPatchTask(t)
 
 		reqBody := strings.NewReader(`{"isCompleted": "false"}`)
 		req, err := http.NewRequest("PATCH", testUrl+"/tasks/2", reqBody)
@@ -452,4 +452,46 @@ func TestPatchTask(t *testing.T) {
 
 		shutdownTestDB(t)
 	})
+}
+
+func BenchmarkPostTask(b *testing.B) {
+	setupTestDB(b)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		reqBody := strings.NewReader(`{"title": "タスク", "expectedPomodoroNumber": 0, "dueOn": "0001-01-01T00:00:00Z"}`)
+		req, _ := http.NewRequest("POST", testUrl+"/tasks", reqBody)
+
+		_, _ = testClient.Do(req)
+	}
+
+	shutdownTestDB(b)
+}
+
+func BenchmarkGetTasks(b *testing.B) {
+	setupTestDB(b)
+	setupTestGetTasks(b)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req, _ := http.NewRequest("GET", testUrl+"/tasks", nil)
+
+		_, _ = testClient.Do(req)
+	}
+
+	shutdownTestDB(b)
+}
+
+func BenchmarkPatchTask(b *testing.B) {
+	setupTestDB(b)
+	setupTestPatchTask(b)
+
+	for i := 0; i < b.N; i++ {
+		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
+		req, _ := http.NewRequest("PATCH", testUrl+"/tasks/1", reqBody)
+
+		_, _ = testClient.Do(req)
+	}
+
+	shutdownTestDB(b)
 }

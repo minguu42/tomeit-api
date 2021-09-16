@@ -46,20 +46,20 @@ func (ps *pomodorosResponse) Render(w http.ResponseWriter, r *http.Request) erro
 	return nil
 }
 
-type postPomodoroRequest struct {
+type postPomodorosRequest struct {
 	TaskID int64 `json:"taskID"`
 }
 
-func (p *postPomodoroRequest) Bind(r *http.Request) error {
+func (p *postPomodorosRequest) Bind(r *http.Request) error {
 	if p.TaskID <= 0 {
 		return errors.New("missing required taskID field or taskID is a negative number")
 	}
 	return nil
 }
 
-func PostPomodoro(db dbInterface) http.HandlerFunc {
+func PostPomodoros(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		reqBody := &postPomodoroRequest{}
+		reqBody := &postPomodorosRequest{}
 		if err := render.Bind(r, reqBody); err != nil {
 			log.Println("render.Bind failed:", err)
 			_ = render.Render(w, r, badRequestError(err))

@@ -38,12 +38,12 @@ func main() {
 	r.Use(tomeit.UserCtx(db, firebaseApp))
 
 	r.Route("/tasks", func(r chi.Router) {
-		r.Post("/", tomeit.PostTask(db))
+		r.Post("/", tomeit.PostTasks(db))
 		r.Get("/", tomeit.GetTasks(db))
 		r.Patch("/{task-id}", tomeit.PatchTask(db))
 	})
 	r.Route("/pomodoros", func(r chi.Router) {
-		r.Post("/", tomeit.PostPomodoro(db))
+		r.Post("/", tomeit.PostPomodoros(db))
 		r.Get("/", tomeit.GetPomodoros(db))
 
 		r.Get("/rest-count", tomeit.GetRestCount)

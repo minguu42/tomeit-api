@@ -31,12 +31,12 @@ func TestMain(m *testing.M) {
 	r.Use(UserCtx(testDB, firebaseApp))
 
 	r.Route("/tasks", func(r chi.Router) {
-		r.Post("/", PostTask(testDB))
+		r.Post("/", PostTasks(testDB))
 		r.Get("/", GetTasks(testDB))
 		r.Patch("/{task-id}", PatchTask(testDB))
 	})
 	r.Route("/pomodoros", func(r chi.Router) {
-		r.Post("/", PostPomodoro(testDB))
+		r.Post("/", PostPomodoros(testDB))
 		r.Get("/", GetPomodoros(testDB))
 
 		r.Get("/rest-count", GetRestCount)

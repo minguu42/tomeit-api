@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestPostTask(t *testing.T) {
+func TestPostTasks(t *testing.T) {
 	t.Run("新しいタスクを作成する", func(t *testing.T) {
 		setupTestDB(t)
 
@@ -454,7 +454,7 @@ func TestPatchTask(t *testing.T) {
 	})
 }
 
-func BenchmarkPostTask(b *testing.B) {
+func BenchmarkPostTasks(b *testing.B) {
 	setupTestDB(b)
 
 	b.ResetTimer()

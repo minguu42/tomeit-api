@@ -63,13 +63,13 @@ func (ts *tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-type postTaskRequest struct {
+type postTasksRequest struct {
 	Title                  string `json:"title"`
 	ExpectedPomodoroNumber int    `json:"expectedPomodoroNumber,omitempty"`
 	DueOn                  string `json:"dueOn,omitempty"`
 }
 
-func (p *postTaskRequest) Bind(r *http.Request) error {
+func (p *postTasksRequest) Bind(r *http.Request) error {
 	if p.Title == "" {
 		return errors.New("missing required title field")
 	}
@@ -79,9 +79,9 @@ func (p *postTaskRequest) Bind(r *http.Request) error {
 	return nil
 }
 
-func PostTask(db dbInterface) http.HandlerFunc {
+func PostTasks(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		reqBody := &postTaskRequest{}
+		reqBody := &postTasksRequest{}
 		if err := render.Bind(r, reqBody); err != nil {
 			log.Println("render.Bind failed:", err)
 			_ = render.Render(w, r, badRequestError(err))

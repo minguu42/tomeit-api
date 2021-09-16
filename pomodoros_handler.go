@@ -141,7 +141,7 @@ func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error
 	return nil
 }
 
-func GetNextRestCount(w http.ResponseWriter, r *http.Request) {
+func GetRestCount(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(userKey).(*user)
 
 	if err := render.Render(w, r, &restCountResponse{RestCount: user.restCount}); err != nil {

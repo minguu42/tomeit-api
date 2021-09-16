@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 		r.Post("/", PostPomodoro(testDB))
 		r.Get("/", GetPomodoros(testDB))
 
-		r.Get("/rest-count", GetNextRestCount)
+		r.Get("/rest-count", GetRestCount)
 	})
 
 	ts := httptest.NewServer(r)

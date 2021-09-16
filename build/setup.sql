@@ -5,10 +5,10 @@ DROP TABLE IF EXISTS tasks;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE IF NOT EXISTS users (
-    id              INT       PRIMARY KEY AUTO_INCREMENT,
-    digest_uid      CHAR(64)  NOT NULL UNIQUE,
-    next_rest_count INT       DEFAULT 4 NOT NULL CHECK ( 1 <= next_rest_count AND next_rest_count <= 4 ),
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+    id         INT       PRIMARY KEY AUTO_INCREMENT,
+    digest_uid CHAR(64)  NOT NULL UNIQUE,
+    rest_count INT       DEFAULT 4 NOT NULL CHECK ( 1 <= rest_count AND rest_count <= 4 ),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tasks (

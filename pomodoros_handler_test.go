@@ -230,7 +230,7 @@ func TestGetRestCount(t *testing.T) {
 	t.Run("次の15分休憩までのカウントを取得する", func(t *testing.T) {
 		setupTestDB(t)
 
-		req, err := http.NewRequest("GET", testUrl+"/pomodoros/next-rest-count", nil)
+		req, err := http.NewRequest("GET", testUrl+"/pomodoros/rest-count", nil)
 		if err != nil {
 			t.Error("Create request failed:", err)
 		}
@@ -248,7 +248,7 @@ func TestGetRestCount(t *testing.T) {
 			t.Error("Close response failed:", err)
 		}
 
-		var body nextRestCountResponse
+		var body restCountResponse
 		if err := json.Unmarshal(bytes, &body); err != nil {
 			t.Error("Unmarshal json failed:", err)
 		}
@@ -256,8 +256,8 @@ func TestGetRestCount(t *testing.T) {
 		if resp.StatusCode != 200 {
 			t.Error("Status code should be 200, but", resp.StatusCode)
 		}
-		if body.NextRestCount != 4 {
-			t.Error("nextRestCount should be 4, but", body.NextRestCount)
+		if body.RestCount != 4 {
+			t.Error("restCount should be 4, but", body.RestCount)
 		}
 
 		shutdownTestDB(t)

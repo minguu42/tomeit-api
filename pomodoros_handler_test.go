@@ -263,3 +263,39 @@ func TestGetRestCount(t *testing.T) {
 		shutdownTestDB(t)
 	})
 }
+
+func BenchmarkPostPomodoro(b *testing.B) {
+	setupTestDB(b)
+	setupTestPostPomodoro(b)
+	defer shutdownTestDB(b)
+
+	for i := 0; i < b.N; i++ {
+		reqBody := strings.NewReader(`{ "taskID": 1 }`)
+		req, _ := http.NewRequest("POST", testUrl+"/pomodoros", reqBody)
+
+		_, _ = testClient.Do(req)
+	}
+}
+
+func BenchmarkGetPomodoros(b *testing.B) {
+	setupTestDB(b)
+	setupTestGetPomodoros(b)
+	defer shutdownTestDB(b)
+
+	for i := 0; i < b.N; i++ {
+		req, _ := http.NewRequest("GET", testUrl+"/pomodoros", nil)
+
+		_, _ = testClient.Do(req)
+	}
+}
+
+func BenchmarkGetRestCount(b *testing.B) {
+	setupTestDB(b)
+	defer shutdownTestDB(b)
+
+	for i := 0; i < b.N; i++ {
+		req, _ := http.NewRequest("GET", testUrl+"/pomodoros/rest-count", nil)
+
+		_, _ = testClient.Do(req)
+	}
+}

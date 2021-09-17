@@ -25,13 +25,17 @@ lint: ## govet, staticcheck による静的解析を実行する
 .PHONY: test
 test:  ## テストを実行する
 	@docker compose up -d db-test
-	-go test
+	@go test
 
 .PHONY: check
 check: ## fmt, lint, test を実行し, 適切な状態か確認する
 	@make fmt
 	@make lint
 	@make test
+
+.PHONY: bench
+bench: ## ハンドラ関数のベンチマークを実行する
+	@go test -bench .
 
 .PHONY: help
 help: ## ヘルプを表示する

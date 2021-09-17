@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func setupTestPostPomodoro(tb testing.TB) {
+func setupTestPostPomodoros(tb testing.TB) {
 	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, due_on, is_completed) VALUES (1, 'タスク1', 0, '2018-12-31', false)`
 
 	if _, err := testDB.Exec(createTask1); err != nil {
@@ -17,10 +17,10 @@ func setupTestPostPomodoro(tb testing.TB) {
 	}
 }
 
-func TestPostPomodoro(t *testing.T) {
+func TestPostPomodoros(t *testing.T) {
 	t.Run("ポモドーロを記録する", func(t *testing.T) {
 		setupTestDB(t)
-		setupTestPostPomodoro(t)
+		setupTestPostPomodoros(t)
 
 		reqBody := strings.NewReader(`{"taskID": 1 }`)
 		req, err := http.NewRequest("POST", testUrl+"/pomodoros", reqBody)
@@ -262,4 +262,40 @@ func TestGetRestCount(t *testing.T) {
 
 		shutdownTestDB(t)
 	})
+}
+
+func BenchmarkPostPomodoros(b *testing.B) {
+	setupTestDB(b)
+	setupTestPostPomodoros(b)
+	defer shutdownTestDB(b)
+
+	for i := 0; i < b.N; i++ {
+		reqBody := strings.NewReader(`{ "taskID": 1 }`)
+		req, _ := http.NewRequest("POST", testUrl+"/pomodoros", reqBody)
+
+		_, _ = testClient.Do(req)
+	}
+}
+
+func BenchmarkGetPomodoros(b *testing.B) {
+	setupTestDB(b)
+	setupTestGetPomodoros(b)
+	defer shutdownTestDB(b)
+
+	for i := 0; i < b.N; i++ {
+		req, _ := http.NewRequest("GET", testUrl+"/pomodoros", nil)
+
+		_, _ = testClient.Do(req)
+	}
+}
+
+func BenchmarkGetRestCount(b *testing.B) {
+	setupTestDB(b)
+	defer shutdownTestDB(b)
+
+	for i := 0; i < b.N; i++ {
+		req, _ := http.NewRequest("GET", testUrl+"/pomodoros/rest-count", nil)
+
+		_, _ = testClient.Do(req)
+	}
 }

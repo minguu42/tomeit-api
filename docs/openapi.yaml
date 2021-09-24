@@ -101,7 +101,6 @@ paths:
       description: |
         タスクの一部情報を更新する
 
-        パス中の taskId で更新する一つのタスクを指定する.
         status の値のみ変更できる.
       parameters:
         - $ref: "#/components/parameters/idToken"
@@ -125,6 +124,21 @@ paths:
                 $ref: "#/components/schemas/Task"
         "400":
           $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/AuthenticationError"
+        "403":
+          $ref: "#/components/responses/AuthorizationError"
+    delete:
+      summary: タスク削除 API
+      tags:
+        - tasks
+      description: タスクを削除する
+      parameters:
+        - $ref: "#/components/parameters/idToken"
+        - $ref: "#/components/parameters/taskId"
+      responses:
+        "204":
+          description: 成功
         "401":
           $ref: "#/components/responses/AuthenticationError"
         "403":
@@ -195,6 +209,22 @@ paths:
           $ref: "#/components/responses/BadRequestError"
         "401":
           $ref: "#/components/responses/AuthenticationError"
+  /pomodoros/{pomodoroId}:
+    delete:
+      summary: ポモドーロ記録削除 API
+      tags:
+        - pomodoros
+      description: ポモドーロ記録を削除する
+      parameters:
+        - $ref: "#/components/parameters/idToken"
+        - $ref: "#/components/parameters/pomodoroId"
+      responses:
+        "204":
+          description: 成功
+        "401":
+          $ref: "#/components/responses/AuthenticationError"
+        "403":
+          $ref: "#/components/responses/AuthorizationError"
   /pomodoros/rest-count:
     get:
       summary: 次の長い休憩までのカウント取得 API
@@ -324,7 +354,7 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
     AuthenticationError:
-      description: ユーザが認証できない
+      description: ユーザを認証できない
       content:
         application/json:
           schema:
@@ -351,6 +381,14 @@ components:
         type: string
     taskId:
       name: taskId
+      in: path
+      description: 任意のタスク ID
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    pomodoroId:
+      name: pomodoroId
       in: path
       description: 任意のタスク ID
       required: true

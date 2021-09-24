@@ -20,7 +20,7 @@ import (
 func main() {
 	firebaseApp := tomeit.InitFirebaseApp()
 
-	db := tomeit.OpenDB("mysql", os.Getenv("DSN"))
+	db := tomeit.OpenDB(os.Getenv("DSN"))
 	defer tomeit.CloseDB(db)
 
 	r := chi.NewRouter()

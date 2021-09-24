@@ -10,6 +10,8 @@ require (
 	github.com/go-chi/cors v1.2.0
 	github.com/go-chi/render v1.0.1
 	github.com/go-sql-driver/mysql v1.6.0
+	gorm.io/driver/mysql v1.1.2
+	gorm.io/gorm v1.21.15
 )
 
 require (
@@ -20,6 +22,8 @@ require (
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	go.opencensus.io v0.22.5 // indirect
 	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect

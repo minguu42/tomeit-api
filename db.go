@@ -1,9 +1,11 @@
 package tomeit
 
 import (
-	"database/sql"
 	"log"
 	"time"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type dbInterface interface {
@@ -23,19 +25,26 @@ type dbInterface interface {
 }
 
 type DB struct {
-	*sql.DB
+	*gorm.DB
 }
 
-func OpenDB(driver, dsn string) *DB {
-	db, err := sql.Open(driver, dsn)
+func OpenDB(dsn string) *DB {
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		DisableAutomaticPing: true,
+	})
 	if err != nil {
-		log.Fatalln("Open db failed:", err)
+		log.Fatal("Open db failed:", err)
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal("db.DB failed:", err)
 	}
 
 	isDBReady := false
 	failureTimes := 0
 	for !isDBReady {
-		err := db.Ping()
+		err := sqlDB.Ping()
 		if err == nil {
 			isDBReady = true
 		} else {
@@ -53,7 +62,12 @@ func OpenDB(driver, dsn string) *DB {
 }
 
 func CloseDB(db *DB) {
-	if err := db.Close(); err != nil {
-		log.Fatalln("Close db failed:", err)
+	sqlDB, err := db.DB.DB()
+	if err != nil {
+		log.Fatal("db.DB failed:", err)
+	}
+
+	if err := sqlDB.Close(); err != nil {
+		log.Fatal("sqlDB.Close failed:", err)
 	}
 }

@@ -36,7 +36,7 @@ paths:
                 title:
                   type: string
                   example: タスク1
-                expectedPomodoroNumber:
+                expectedPomodoroNum:
                   type: integer
                   example: 4
                 dueOn:
@@ -63,12 +63,12 @@ paths:
         作成順で最大30件まで取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
-        - name: status
-          description: タスクの状態で絞り込みを行う. 省略可能.
+        - name: isCompleted
+          description: タスクが完了済みかどうかで絞り込みを行う. 省略可能.
           in: "query"
           schema:
             type: string
-            example: needsAction
+            example: "false"
         - name: completedOn
           description: タスクを完了した日付で絞り込む. 省略可能.
           in: "query"
@@ -81,14 +81,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - tasks
-                properties:
-                  tasks:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Task"
+                $ref: "#/components/schemas/TaskList"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":
@@ -112,9 +105,9 @@ paths:
             schema:
               type: object
               properties:
-                status:
+                isCompleted:
                   type: string
-                  example: "completed"
+                  example: "false"
       responses:
         "200":
           description: 成功
@@ -197,14 +190,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - pomodoros
-                properties:
-                  pomodoros:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Pomodoro"
+                $ref: "#/components/schemas/PomodoroList"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":
@@ -259,7 +245,7 @@ components:
         - expectedPomodoroNum
         - actualPomodoroNum
         - dueOn
-        - status
+        - isCompleted
         - completedOn
         - createdAt
         - updatedAt
@@ -292,13 +278,9 @@ components:
             オプション. 存在しない場合は ""（空の文字列）を返す.
           type: string
           example: "2021-01-01T00:00:00Z"
-        status:
-          description: |
-            タスクの状態
-
-            "needsAction", もしくは, "completed" の値を取る.
-          type: string
-          example: needsAction
+        isCompleted:
+          description: タスクを完了したかどうか
+          type: boolean
         completedOn:
           description: |
             タスクを完了した日付
@@ -314,6 +296,16 @@ components:
           description: タスクを更新した時刻
           type: string
           example: "2021-01-01T00:00:00Z"
+    TaskList:
+      type: object
+      required:
+        - tasks
+      properties:
+        tasks:
+          description: タスク一覧
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
     Pomodoro:
       type: object
       required:
@@ -332,6 +324,16 @@ components:
           description: ポモドーロを完了した時刻
           type: string
           example: "2021-01-01T00:00:00Z"
+    PomodoroList:
+      type: object
+      required:
+        - pomodoros
+      properties:
+        pomodoros:
+          description: ポモドーロ記録一覧
+          type: array
+          items:
+            $ref: "#/components/schemas/Pomodoro"
     Error:
       type: object
       required:

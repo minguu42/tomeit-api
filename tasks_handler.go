@@ -113,74 +113,58 @@ func postTasks(db dbInterface) http.HandlerFunc {
 	}
 }
 
-//type tasksResponse struct {
-//	Tasks []*taskResponse `json:"tasks"`
-//}
-//
-//func newTasksResponse(tasks []*task, db dbInterface) *tasksResponse {
-//	var ts []*taskResponse
-//	for _, t := range tasks {
-//		ts = append(ts, newTaskResponse(t, db))
-//	}
-//	return &tasksResponse{Tasks: ts}
-//}
-//
-//func (ts *tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
-//	return nil
-//}
+type tasksResponse struct {
+	Tasks []taskResponse `json:"tasks"`
+}
 
-//func GetTasks(db dbInterface) http.HandlerFunc {
-//	return func(w http.ResponseWriter, r *http.Request) {
-//		existIsCompleted := true
-//		var isCompleted bool
-//		isCompletedStr := r.URL.Query().Get("is-completed")
-//		if isCompletedStr == "" {
-//			existIsCompleted = false
-//		} else if isCompletedStr == "true" {
-//			isCompleted = true
-//		} else if isCompletedStr == "false" {
-//			isCompleted = false
-//		} else {
-//			_ = render.Render(w, r, badRequestError(errors.New("is-completed value is invalid")))
-//			return
-//		}
-//
-//		existCompletedOn := true
-//		completedOnStr := r.URL.Query().Get("completed-on")
-//		completedOn, err := time.Parse(time.RFC3339, completedOnStr)
-//		if err != nil {
-//			if completedOnStr == "" {
-//				existCompletedOn = false
-//			} else {
-//				_ = render.Render(w, r, badRequestError(errors.New("completed-on value is invalid")))
-//				return
-//			}
-//		}
-//
-//		options := getTasksOptions{
-//			existIsCompleted: existIsCompleted,
-//			isCompleted:      isCompleted,
-//			existCompletedOn: existCompletedOn,
-//			completedOn:      completedOn,
-//		}
-//
-//		user := r.Context().Value(userKey).(*user)
-//
-//		tasks, err := db.getTasksByUser(user, &options)
-//		if err != nil {
-//			log.Println("db.getTasksByUser failed:", err)
-//			_ = render.Render(w, r, internalServerError(err))
-//			return
-//		}
-//
-//		if err := render.Render(w, r, newTasksResponse(tasks, db)); err != nil {
-//			log.Println("render.Render failed:", err)
-//			_ = render.Render(w, r, internalServerError(err))
-//			return
-//		}
-//	}
-//}
-//
+func newTasksResponse(tasks []Task, db dbInterface) *tasksResponse {
+	var ts []taskResponse
+	for _, t := range tasks {
+		ts = append(ts, *newTaskResponse(&t, db))
+	}
+	return &tasksResponse{Tasks: ts}
+}
+
+func (ts *tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func getTasks(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var options getTasksOptions
+
+		isCompletedStr := r.URL.Query().Get("isCompleted")
+		if isCompletedStr == "true" {
+			options.existIsCompleted = true
+			options.isCompleted = true
+		} else if isCompletedStr == "false" {
+			options.existIsCompleted = false
+			options.isCompleted = false
+		}
+
+		completedOnStr := r.URL.Query().Get("completedOn")
+		if completedOn, err := time.Parse(time.RFC3339, completedOnStr); err == nil {
+			options.existCompletedOn = true
+			options.completedOn = completedOn
+		}
+
+		user := r.Context().Value(userKey).(*User)
+
+		tasks, err := db.getTasksByUser(user, &options)
+		if err != nil {
+			log.Println("db.getTasksByUser failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
+			return
+		}
+
+		if err := render.Render(w, r, newTasksResponse(tasks, db)); err != nil {
+			log.Println("render.Render failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
+			return
+		}
+	}
+}
+
 //type patchTaskRequest struct {
 //	IsCompleted string `json:"isCompleted"`
 //}

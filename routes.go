@@ -5,7 +5,7 @@ import "github.com/go-chi/chi/v5"
 func Route(r chi.Router, db dbInterface) {
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", postTasks(db))
-		//r.Get("/", tomeit.GetTasks(db))
+		r.Get("/", getTasks(db))
 		//r.Patch("/{task-id}", tomeit.PatchTask(db))
 	})
 

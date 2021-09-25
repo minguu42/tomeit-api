@@ -28,7 +28,7 @@ func UserCtx(db dbInterface, firebaseApp firebaseAppInterface) Middleware {
 				return
 			}
 
-			var user *user
+			var user *User
 
 			user, err = db.getUserByDigestUID(hash(token.UID))
 			if user == nil || err != nil {

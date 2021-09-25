@@ -1,6 +1,8 @@
 package tomeit
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -8,21 +10,23 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp/cmpopts"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
-	testClient *http.Client
-	testUrl    string
-	testDB     *DB
+	testClient          *http.Client
+	testUrl             string
+	testDB              *DB
+	taskResponseCmpOpts = cmpopts.IgnoreFields(taskResponse{}, "CreatedAt", "UpdatedAt")
 )
 
 func TestMain(m *testing.M) {
 	firebaseApp := &firebaseAppMock{}
 
-	testDB = OpenDB("mysql", "test:password@tcp(localhost:13306)/db_test?parseTime=true")
+	testDB = OpenDB("test:password@tcp(localhost:13306)/db_test?charset=utf8mb4&parseTime=true")
 	defer CloseDB(testDB)
 
 	r := chi.NewRouter()
@@ -30,17 +34,7 @@ func TestMain(m *testing.M) {
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Use(UserCtx(testDB, firebaseApp))
 
-	r.Route("/tasks", func(r chi.Router) {
-		r.Post("/", PostTasks(testDB))
-		r.Get("/", GetTasks(testDB))
-		r.Patch("/{task-id}", PatchTask(testDB))
-	})
-	r.Route("/pomodoros", func(r chi.Router) {
-		r.Post("/", PostPomodoros(testDB))
-		r.Get("/", GetPomodoros(testDB))
-
-		r.Get("/rest-count", GetRestCount)
-	})
+	Route(r, testDB)
 
 	ts := httptest.NewServer(r)
 	defer ts.Close()
@@ -52,7 +46,7 @@ func TestMain(m *testing.M) {
 }
 
 func setupTestDB(tb testing.TB) {
-	file, err := os.ReadFile(filepath.Join(".", "build", "setup.sql"))
+	file, err := os.ReadFile(filepath.Join(".", "build", "create_tables.sql"))
 	if err != nil {
 		tb.Fatal("os.ReadFile failed:", err)
 	}
@@ -63,31 +57,50 @@ func setupTestDB(tb testing.TB) {
 			break
 		}
 
-		_, err := testDB.Exec(query)
-		if err != nil {
-			tb.Fatal("db.Exec failed:", err)
-		}
+		testDB.Exec(query)
 	}
 
 	const createTestUser = `INSERT INTO users (digest_uid) VALUES ('a2c4ba85c41f186283948b1a54efacea04cb2d3f54a88d5826a7e6a917b28c5a')`
 
-	if _, err := testDB.Exec(createTestUser); err != nil {
-		tb.Fatal("createTestUser failed:", err)
-	}
+	testDB.Exec(createTestUser)
 }
 
-func shutdownTestDB(tb testing.TB) {
+func teardownTestDB() {
 	const dropPomodorosTable = `DROP TABLE IF EXISTS pomodoros`
 	const dropTasksTable = `DROP TABLE IF EXISTS tasks`
 	const dropUsersTable = `DROP TABLE IF EXISTS users`
 
-	if _, err := testDB.Exec(dropPomodorosTable); err != nil {
-		tb.Fatal("drop pomodoros table failed:", err)
+	testDB.Exec(dropPomodorosTable)
+	testDB.Exec(dropTasksTable)
+	testDB.Exec(dropUsersTable)
+}
+
+func doTestRequest(tb testing.TB, method, path string, body io.Reader, respBodyType string) (*http.Response, interface{}) {
+	req, err := http.NewRequest(method, testUrl+path, body)
+	if err != nil {
+		tb.Fatal("Create request failed:", err)
 	}
-	if _, err := testDB.Exec(dropTasksTable); err != nil {
-		tb.Fatal("drop tasks table failed:", err)
+
+	resp, err := testClient.Do(req)
+	if err != nil {
+		tb.Fatal("Do request failed:", err)
 	}
-	if _, err := testDB.Exec(dropUsersTable); err != nil {
-		tb.Fatal("drop users table failed:", err)
+
+	bytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		tb.Fatal("Read respBody failed:", err)
 	}
+	if err := resp.Body.Close(); err != nil {
+		tb.Fatal("Close respBody failed:", err)
+	}
+
+	if respBodyType == "taskResponse" {
+		var respBody taskResponse
+		if err := json.Unmarshal(bytes, &respBody); err != nil {
+			tb.Fatal("Unmarshal json failed:", err)
+		}
+		return resp, respBody
+	}
+
+	return resp, nil
 }

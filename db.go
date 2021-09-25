@@ -1,41 +1,50 @@
 package tomeit
 
 import (
-	"database/sql"
 	"log"
 	"time"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type dbInterface interface {
-	createUser(digestUID string) (*user, error)
-	getUserByDigestUID(digestUID string) (*user, error)
-	decrementRestCount(user *user) error
+	createUser(digestUID string) (*User, error)
+	getUserByDigestUID(digestUID string) (*User, error)
+	//decrementRestCount(user *user) error
 
-	createTask(userID int64, name string, priority int, deadline time.Time) (int64, error)
-	getTaskByID(id int64) (*task, error)
-	getTasksByUser(user *user, options *getTasksOptions) ([]*task, error)
-	getActualPomodoroNumberByID(id int64) (int, error)
-	updateTask(task *task, options *updateTaskOptions) error
+	createTask(userID int, title string, priority int, dueAt time.Time) (int, error)
+	getTaskByID(id int) (*Task, error)
+	//getTasksByUser(user *user, options *getTasksOptions) ([]*task, error)
+	//getActualPomodoroNumberByID(id int) (int, error)
+	//updateTask(task *task, options *updateTaskOptions) error
 
-	createPomodoro(userID, taskID int64) (int64, error)
-	getPomodoroByID(id int64) (*pomodoro, error)
-	getPomodorosByUser(user *user, options *getPomodorosOptions) ([]*pomodoro, error)
+	//createPomodoro(userID, taskID int64) (int64, error)
+	//getPomodoroByID(id int64) (*pomodoro, error)
+	//getPomodorosByUser(user *user, options *getPomodorosOptions) ([]*pomodoro, error)
 }
 
 type DB struct {
-	*sql.DB
+	*gorm.DB
 }
 
-func OpenDB(driver, dsn string) *DB {
-	db, err := sql.Open(driver, dsn)
+func OpenDB(dsn string) *DB {
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		DisableAutomaticPing: true,
+	})
 	if err != nil {
-		log.Fatalln("Open db failed:", err)
+		log.Fatal("Open db failed:", err)
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal("db.DB failed:", err)
 	}
 
 	isDBReady := false
 	failureTimes := 0
 	for !isDBReady {
-		err := db.Ping()
+		err := sqlDB.Ping()
 		if err == nil {
 			isDBReady = true
 		} else {
@@ -53,7 +62,12 @@ func OpenDB(driver, dsn string) *DB {
 }
 
 func CloseDB(db *DB) {
-	if err := db.Close(); err != nil {
-		log.Fatalln("Close db failed:", err)
+	sqlDB, err := db.DB.DB()
+	if err != nil {
+		log.Fatal("db.DB failed:", err)
+	}
+
+	if err := sqlDB.Close(); err != nil {
+		log.Fatal("sqlDB.Close failed:", err)
 	}
 }

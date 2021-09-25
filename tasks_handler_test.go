@@ -43,6 +43,19 @@ func TestPostTasks(t *testing.T) {
 			t.Errorf("taskResponse mismatch (-got +want):\n%s", diff)
 		}
 	})
+	t.Run("リクエストボディに title が存在しない", func(t *testing.T) {
+		setupTestDB(t)
+		t.Cleanup(teardownTestDB)
+
+		reqBody := strings.NewReader(`{
+  "expectedPomodoroNum": 4,
+  "dueOn": "2021-01-01T00:00:00Z"
+}`)
+		resp, _ := doTestRequest(t, "POST", "/tasks", reqBody, "taskResponse")
+		if resp.StatusCode != 400 {
+			t.Error("Status code should be 400, but", resp.StatusCode)
+		}
+	})
 }
 
 //func TestPostTasks(t *testing.T) {

@@ -2,9 +2,13 @@ package tomeit
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
+
+	"github.com/go-chi/chi/v5"
 
 	"github.com/go-chi/render"
 )
@@ -165,75 +169,62 @@ func getTasks(db dbInterface) http.HandlerFunc {
 	}
 }
 
-//type patchTaskRequest struct {
-//	IsCompleted string `json:"isCompleted"`
-//}
-//
-//func (p *patchTaskRequest) Bind(r *http.Request) error {
-//	return nil
-//}
-//
-//func PatchTask(db dbInterface) http.HandlerFunc {
-//	return func(w http.ResponseWriter, r *http.Request) {
-//		taskID, err := strconv.ParseInt(chi.URLParam(r, "task-id"), 10, 64)
-//		if err != nil {
-//			log.Println("strconv.ParseInt failed:", err)
-//			_ = render.Render(w, r, badRequestError(err))
-//			return
-//		}
-//
-//		user := r.Context().Value(userKey).(*user)
-//
-//		task, err := db.getTaskByID(taskID)
-//		if err != nil {
-//			log.Println("db.getTaskByID failed:", err)
-//			_ = render.Render(w, r, badRequestError(err))
-//			return
-//		}
-//		if user.id != task.user.id {
-//			log.Println("user.id != task.user.id")
-//			_ = render.Render(w, r, AuthorizationError(errors.New("task's userID does not match your userID")))
-//			return
-//		}
-//
-//		data := &patchTaskRequest{}
-//		if err := render.Bind(r, data); err != nil {
-//			log.Println("render.Bind failed:", err)
-//			_ = render.Render(w, r, badRequestError(err))
-//			return
-//		}
-//
-//		options := updateTaskOptions{}
-//
-//		if data.IsCompleted == "true" {
-//			options.isCompletedExists = true
-//			task.isCompleted = true
-//		} else if data.IsCompleted == "false" {
-//			options.isCompletedExists = true
-//			task.isCompleted = false
-//		} else if data.IsCompleted == "" {
-//			options.isCompletedExists = false
-//		} else {
-//			_ = render.Render(w, r, badRequestError(err))
-//			return
-//		}
-//
-//		if err := db.updateTask(task, &options); err != nil {
-//			log.Println("db.updateTask failed:", err)
-//			_ = render.Render(w, r, badRequestError(err))
-//			return
-//		}
-//
-//		task, err = db.getTaskByID(task.id)
-//		if err != nil {
-//			log.Println("db.getTaskByID failed:", err)
-//			_ = render.Render(w, r, internalServerError(err))
-//			return
-//		}
-//		if err := render.Render(w, r, newTaskResponse(task, db)); err != nil {
-//			log.Println("render.Render failed:", err)
-//			_ = render.Render(w, r, internalServerError(err))
-//			return
-//		}
-//	}
-//}
+type patchTaskRequest struct {
+	IsCompleted string `json:"isCompleted"`
+}
+
+func (p *patchTaskRequest) Bind(r *http.Request) error {
+	if p.IsCompleted != "true" && p.IsCompleted != "false" {
+		return fmt.Errorf("isCompleted value is wrong")
+	}
+	return nil
+}
+
+func patchTask(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		taskID, err := strconv.ParseInt(chi.URLParam(r, "taskID"), 10, 64)
+		if err != nil {
+			log.Println("strconv.ParseInt failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+
+		user := r.Context().Value(userKey).(*User)
+
+		task, err := db.getTaskByID(int(taskID))
+		if err != nil {
+			log.Println("db.getTaskByID failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+		if user.ID != task.UserID {
+			log.Println("user.id != task.userID")
+			_ = render.Render(w, r, AuthorizationError(errors.New("task's userID does not match your userID")))
+			return
+		}
+
+		data := &patchTaskRequest{}
+		if err := render.Bind(r, data); err != nil {
+			log.Println("render.Bind failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+
+		task.IsCompleted, _ = strconv.ParseBool(data.IsCompleted)
+
+		db.updateTask(task)
+
+		task, err = db.getTaskByID(task.ID)
+		if err != nil {
+			log.Println("db.getTaskByID failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
+			return
+		}
+
+		if err := render.Render(w, r, newTaskResponse(task, db)); err != nil {
+			log.Println("render.Render failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
+			return
+		}
+	}
+}

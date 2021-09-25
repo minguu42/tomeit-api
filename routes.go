@@ -6,7 +6,7 @@ func Route(r chi.Router, db dbInterface) {
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", postTasks(db))
 		r.Get("/", getTasks(db))
-		//r.Patch("/{task-id}", tomeit.PatchTask(db))
+		r.Patch("/{taskID}", patchTask(db))
 	})
 
 	r.Route("/pomodoros", func(r chi.Router) {

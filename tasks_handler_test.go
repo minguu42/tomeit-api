@@ -35,7 +35,6 @@ func TestPostTasks(t *testing.T) {
 			ActualPomodoroNum:   0,
 			DueOn:               "2021-01-01T00:00:00Z",
 			IsCompleted:         false,
-			CompletedOn:         "",
 		}
 
 		if diff := cmp.Diff(got, want, taskResponseCmpOpts); diff != "" {
@@ -86,9 +85,6 @@ func TestGetTasks(t *testing.T) {
 					ActualPomodoroNum:   0,
 					DueOn:               "2021-01-01T00:00:00Z",
 					IsCompleted:         false,
-					CompletedOn:         "",
-					CreatedAt:           "",
-					UpdatedAt:           "",
 				},
 				{
 					ID:                  2,
@@ -97,9 +93,6 @@ func TestGetTasks(t *testing.T) {
 					ActualPomodoroNum:   0,
 					DueOn:               "2021-12-31T00:00:00Z",
 					IsCompleted:         true,
-					CompletedOn:         "2021-08-31T12:30:00Z",
-					CreatedAt:           "",
-					UpdatedAt:           "",
 				},
 			},
 		}
@@ -135,9 +128,6 @@ func TestGetTasks(t *testing.T) {
 					ActualPomodoroNum:   0,
 					DueOn:               "2021-12-31T00:00:00Z",
 					IsCompleted:         true,
-					CompletedOn:         "2021-08-31T12:30:00Z",
-					CreatedAt:           "",
-					UpdatedAt:           "",
 				},
 			},
 		}
@@ -170,9 +160,6 @@ func TestGetTasks(t *testing.T) {
 					ActualPomodoroNum:   0,
 					DueOn:               "2021-12-31T00:00:00Z",
 					IsCompleted:         true,
-					CompletedOn:         "2021-08-31T12:30:00Z",
-					CreatedAt:           "",
-					UpdatedAt:           "",
 				},
 			},
 		}
@@ -183,18 +170,72 @@ func TestGetTasks(t *testing.T) {
 	})
 }
 
-//func setupTestPatchTask(tb testing.TB) {
-//	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, is_completed) VALUES (1, 'タスク1', 0, false)`
-//	const createTask2 = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, is_completed) VALUES (1, 'タスク2', 3, true)`
-//
-//	if _, err := testDB.Exec(createTask1); err != nil {
-//		tb.Fatal("createTask1 failed:", err)
-//	}
-//	if _, err := testDB.Exec(createTask2); err != nil {
-//		tb.Fatal("createTask2 failed:", err)
-//	}
-//}
-//
+func setupTestPatchTask() {
+	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, is_completed) VALUES (1, 'タスク1', 0, false)`
+	const createTask2 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, is_completed) VALUES (1, 'タスク2', 3, true)`
+
+	testDB.Exec(createTask1)
+	testDB.Exec(createTask2)
+}
+
+func TestPatchTask(t *testing.T) {
+	setupTestDB(t)
+	setupTestPatchTask()
+	t.Cleanup(teardownTestDB)
+	t.Run("タスク1の isCompleted の値を true に変更する", func(t *testing.T) {
+		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
+		resp, body := doTestRequest(t, "PATCH", "/tasks/1", nil, reqBody, "taskResponse")
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+
+		got, ok := body.(taskResponse)
+		if !ok {
+			t.Fatal("Type Assertion failed")
+		}
+
+		want := taskResponse{
+			ID:                  1,
+			Title:               "タスク1",
+			ExpectedPomodoroNum: 0,
+			ActualPomodoroNum:   0,
+			DueOn:               "",
+			IsCompleted:         true,
+		}
+
+		if diff := cmp.Diff(got, want, taskResponseCmpOpts); diff != "" {
+			t.Errorf("tasksResponse mismatch (-got +want):\n%s", diff)
+		}
+	})
+	t.Run("タスク2の isCompleted の値を false に変更する", func(t *testing.T) {
+		reqBody := strings.NewReader(`{"isCompleted": "false"}`)
+		resp, body := doTestRequest(t, "PATCH", "/tasks/2", nil, reqBody, "taskResponse")
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+
+		got, ok := body.(taskResponse)
+		if !ok {
+			t.Fatal("Type Assertion failed")
+		}
+
+		want := taskResponse{
+			ID:                  2,
+			Title:               "タスク2",
+			ExpectedPomodoroNum: 3,
+			ActualPomodoroNum:   0,
+			DueOn:               "",
+			IsCompleted:         false,
+		}
+
+		if diff := cmp.Diff(got, want, taskResponseCmpOpts); diff != "" {
+			t.Errorf("tasksResponse mismatch (-got +want):\n%s", diff)
+		}
+	})
+}
+
 //func TestPatchTask(t *testing.T) {
 //	t.Run("タスク1の isCompleted の値を true に変更する", func(t *testing.T) {
 //		setupTestDB(t)

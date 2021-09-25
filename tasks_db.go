@@ -13,9 +13,9 @@ func (db *DB) createTask(userID int, title string, expectedPomodoroNum int, dueA
 		DueAt:               &dueAt,
 	}
 
-	q := db
+	q := db.DB
 	if dueAt.IsZero() {
-		q.Omit("DueAt")
+		q = q.Omit("DueAt")
 	}
 
 	if err := q.Create(&task).Error; err != nil {

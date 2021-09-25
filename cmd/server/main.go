@@ -14,7 +14,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
@@ -39,14 +38,14 @@ func main() {
 
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", tomeit.PostTasks(db))
-		r.Get("/", tomeit.GetTasks(db))
-		r.Patch("/{task-id}", tomeit.PatchTask(db))
+		//r.Get("/", tomeit.GetTasks(db))
+		//r.Patch("/{task-id}", tomeit.PatchTask(db))
 	})
 	r.Route("/pomodoros", func(r chi.Router) {
-		r.Post("/", tomeit.PostPomodoros(db))
-		r.Get("/", tomeit.GetPomodoros(db))
+		//r.Post("/", tomeit.PostPomodoros(db))
+		//r.Get("/", tomeit.GetPomodoros(db))
 
-		r.Get("/rest-count", tomeit.GetRestCount)
+		//r.Get("/rest-count", tomeit.GetRestCount)
 	})
 
 	port := os.Getenv("PORT")

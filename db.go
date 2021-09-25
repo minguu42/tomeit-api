@@ -11,17 +11,17 @@ import (
 type dbInterface interface {
 	createUser(digestUID string) (*User, error)
 	getUserByDigestUID(digestUID string) (*User, error)
-	decrementRestCount(user *user) error
+	//decrementRestCount(user *user) error
 
 	createTask(userID int, title string, priority int, dueAt time.Time) (int, error)
 	getTaskByID(id int) (*Task, error)
-	getTasksByUser(user *user, options *getTasksOptions) ([]*task, error)
-	getActualPomodoroNumberByID(id int) (int, error)
-	updateTask(task *task, options *updateTaskOptions) error
+	//getTasksByUser(user *user, options *getTasksOptions) ([]*task, error)
+	//getActualPomodoroNumberByID(id int) (int, error)
+	//updateTask(task *task, options *updateTaskOptions) error
 
-	createPomodoro(userID, taskID int64) (int64, error)
-	getPomodoroByID(id int64) (*pomodoro, error)
-	getPomodorosByUser(user *user, options *getPomodorosOptions) ([]*pomodoro, error)
+	//createPomodoro(userID, taskID int64) (int64, error)
+	//getPomodoroByID(id int64) (*pomodoro, error)
+	//getPomodorosByUser(user *user, options *getPomodorosOptions) ([]*pomodoro, error)
 }
 
 type DB struct {

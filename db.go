@@ -9,8 +9,8 @@ import (
 )
 
 type dbInterface interface {
-	createUser(digestUID string) (*user, error)
-	getUserByDigestUID(digestUID string) (*user, error)
+	createUser(digestUID string) (*User, error)
+	getUserByDigestUID(digestUID string) (*User, error)
 	decrementRestCount(user *user) error
 
 	createTask(userID int64, name string, priority int, deadline time.Time) (int64, error)

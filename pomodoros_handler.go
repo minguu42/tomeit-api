@@ -1,21 +1,11 @@
 package tomeit
 
-//import (
-//	"errors"
-//	"log"
-//	"net/http"
-//	"time"
-//
-//	"github.com/go-chi/render"
-//)
-//
-//type pomodoroResponse struct {
-//	ID          int64         `json:"id"`
-//	Task        *taskResponse `json:"task"`
-//	CompletedAt string        `json:"completedAt"`
-//	CreatedAt   string        `json:"createdAt"`
-//}
-//
+type pomodoroResponse struct {
+	ID        int64         `json:"id"`
+	Task      *taskResponse `json:"task"`
+	CreatedAt string        `json:"createdAt"`
+}
+
 //func newPomodoroResponse(p *pomodoro, db dbInterface) *pomodoroResponse {
 //	r := pomodoroResponse{
 //		ID:          p.id,

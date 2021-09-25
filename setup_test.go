@@ -17,10 +17,11 @@ import (
 )
 
 var (
-	testClient          *http.Client
-	testUrl             string
-	testDB              *DB
-	taskResponseCmpOpts = cmpopts.IgnoreFields(taskResponse{}, "CompletedOn", "CreatedAt", "UpdatedAt")
+	testClient              *http.Client
+	testUrl                 string
+	testDB                  *DB
+	taskResponseCmpOpts     = cmpopts.IgnoreFields(taskResponse{}, "CompletedOn", "CreatedAt", "UpdatedAt")
+	pomodoroResponseCmpOpts = cmpopts.IgnoreFields(pomodoroResponse{}, "Task.CompletedOn", "Task.CreatedAt", "Task.UpdatedAt", "CreatedAt")
 )
 
 func TestMain(m *testing.M) {
@@ -111,6 +112,12 @@ func doTestRequest(tb testing.TB, method, path string, params *map[string]string
 		return resp, respBody
 	case "tasksResponse":
 		var respBody tasksResponse
+		if err := json.Unmarshal(bytes, &respBody); err != nil {
+			return resp, nil
+		}
+		return resp, respBody
+	case "pomodoroResponse":
+		var respBody pomodoroResponse
 		if err := json.Unmarshal(bytes, &respBody); err != nil {
 			return resp, nil
 		}

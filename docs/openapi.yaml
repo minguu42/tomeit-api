@@ -81,7 +81,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TaskList"
+                $ref: "#/components/schemas/Tasks"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":
@@ -190,7 +190,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PomodoroList"
+                $ref: "#/components/schemas/Pomodoros"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":
@@ -296,7 +296,7 @@ components:
           description: タスクを更新した時刻
           type: string
           example: "2021-01-01T00:00:00Z"
-    TaskList:
+    Tasks:
       type: object
       required:
         - tasks
@@ -324,7 +324,7 @@ components:
           description: ポモドーロを完了した時刻
           type: string
           example: "2021-01-01T00:00:00Z"
-    PomodoroList:
+    Pomodoros:
       type: object
       required:
         - pomodoros

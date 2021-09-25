@@ -16,7 +16,7 @@ type taskResponse struct {
 	ActualPomodoroNum   int    `json:"actualPomodoroNum"`
 	DueOn               string `json:"dueOn"`
 	IsCompleted         bool   `json:"isCompleted"`
-	CompletedAt         string `json:"completedAt"`
+	CompletedOn         string `json:"completedOn"`
 	CreatedAt           string `json:"createdAt"`
 	UpdatedAt           string `json:"updatedAt"`
 }
@@ -29,14 +29,24 @@ func newTaskResponse(t *Task, db dbInterface) *taskResponse {
 	//}
 	c := 0
 
+	var dueOn string
+	if t.DueAt != nil {
+		dueOn = t.DueAt.Format(time.RFC3339)
+	}
+
+	var completedOn string
+	if t.CompletedAt != nil {
+		completedOn = t.CompletedAt.Format(time.RFC3339)
+	}
+
 	r := taskResponse{
 		ID:                  t.ID,
 		Title:               t.Title,
 		ExpectedPomodoroNum: t.ExpectedPomodoroNum,
 		ActualPomodoroNum:   c,
-		DueOn:               t.DueAt.Format(time.RFC3339),
+		DueOn:               dueOn,
 		IsCompleted:         t.IsCompleted,
-		CompletedAt:         t.CompletedAt.Format(time.RFC3339),
+		CompletedOn:         completedOn,
 		CreatedAt:           t.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:           t.UpdatedAt.Format(time.RFC3339),
 	}
@@ -63,7 +73,7 @@ func (p *postTasksRequest) Bind(r *http.Request) error {
 	return nil
 }
 
-func PostTasks(db dbInterface) http.HandlerFunc {
+func postTasks(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reqBody := &postTasksRequest{}
 		if err := render.Bind(r, reqBody); err != nil {
@@ -95,7 +105,6 @@ func PostTasks(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		render.Status(r, http.StatusCreated)
 		if err = render.Render(w, r, newTaskResponse(task, db)); err != nil {
 			log.Println("render.Render failed:", err)
 			_ = render.Render(w, r, internalServerError(err))

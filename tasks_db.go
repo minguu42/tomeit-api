@@ -10,9 +10,15 @@ func (db *DB) createTask(userID int, title string, expectedPomodoroNum int, dueA
 		UserID:              userID,
 		Title:               title,
 		ExpectedPomodoroNum: expectedPomodoroNum,
-		DueAt:               dueAt,
+		DueAt:               &dueAt,
 	}
-	if err := db.Select("UserID", "Title", "ExpectedPomodoroNum", "DueAt").Create(&task).Error; err != nil {
+
+	q := db
+	if dueAt.IsZero() {
+		q.Omit("DueAt")
+	}
+
+	if err := q.Create(&task).Error; err != nil {
 		return 0, fmt.Errorf("db.Create failed: %w", err)
 	}
 	return task.ID, nil

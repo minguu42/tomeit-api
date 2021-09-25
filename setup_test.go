@@ -1,6 +1,8 @@
 package tomeit
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -8,14 +10,17 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp/cmpopts"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
 
 var (
-	testClient *http.Client
-	testUrl    string
-	testDB     *DB
+	testClient          *http.Client
+	testUrl             string
+	testDB              *DB
+	taskResponseCmpOpts = cmpopts.IgnoreFields(taskResponse{}, "CreatedAt", "UpdatedAt")
 )
 
 func TestMain(m *testing.M) {
@@ -68,4 +73,34 @@ func teardownTestDB() {
 	testDB.Exec(dropPomodorosTable)
 	testDB.Exec(dropTasksTable)
 	testDB.Exec(dropUsersTable)
+}
+
+func doTestRequest(tb testing.TB, method, path string, body io.Reader, respBodyType string) (*http.Response, interface{}) {
+	req, err := http.NewRequest(method, testUrl+path, body)
+	if err != nil {
+		tb.Fatal("Create request failed:", err)
+	}
+
+	resp, err := testClient.Do(req)
+	if err != nil {
+		tb.Fatal("Do request failed:", err)
+	}
+
+	bytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		tb.Fatal("Read respBody failed:", err)
+	}
+	if err := resp.Body.Close(); err != nil {
+		tb.Fatal("Close respBody failed:", err)
+	}
+
+	if respBodyType == "taskResponse" {
+		var respBody taskResponse
+		if err := json.Unmarshal(bytes, &respBody); err != nil {
+			tb.Fatal("Unmarshal json failed:", err)
+		}
+		return resp, respBody
+	}
+
+	return resp, nil
 }

@@ -1,16 +1,16 @@
 package tomeit
 
 import (
-	"encoding/json"
-	"io"
-	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestPostTasks(t *testing.T) {
 	t.Run("新しいタスクを作成する", func(t *testing.T) {
 		setupTestDB(t)
+		t.Cleanup(teardownTestDB)
 
 		reqBody := strings.NewReader(`
 {
@@ -19,62 +19,29 @@ func TestPostTasks(t *testing.T) {
   "dueOn": "2021-01-01T00:00:00Z"
 }
 `)
-		req, err := http.NewRequest("POST", testUrl+"/tasks", reqBody)
-		if err != nil {
-			t.Error("Create request failed:", err)
-		}
-
-		resp, err := testClient.Do(req)
-		if err != nil {
-			t.Error("Do request failed:", err)
-		}
-
-		bytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			t.Error("Read response failed:", err)
-		}
-		if err := resp.Body.Close(); err != nil {
-			t.Error("Close response failed:", err)
-		}
-
-		var body taskResponse
-		if err := json.Unmarshal(bytes, &body); err != nil {
-			t.Error("Unmarshal json failed:", err)
-		}
-
+		resp, body := doTestRequest(t, "POST", "/tasks", reqBody, "taskResponse")
 		if resp.StatusCode != 200 {
 			t.Error("Status code should be 200, but", resp.StatusCode)
 		}
 
-		if body.ID != 1 {
-			t.Error("ID should be 1, but", body.ID)
-		}
-		if body.Title != "タスク1" {
-			t.Error("Title should be タスク1, but", body.Title)
-		}
-		if body.ExpectedPomodoroNum != 4 {
-			t.Error("expectedPomodoroNum should be 4, but", body.ExpectedPomodoroNum)
-		}
-		if body.ActualPomodoroNum != 0 {
-			t.Error("actualPomodoroNum should be 0, but", body.ActualPomodoroNum)
-		}
-		if body.DueOn != "2021-01-01T00:00:00Z" {
-			t.Error(`dueOn should be "2021-01-01T00:00:00Z", but`, body.DueOn)
-		}
-		if body.IsCompleted != false {
-			t.Error("isCompleted should be false, but", body.IsCompleted)
-		}
-		if body.CompletedOn != "" {
-			t.Error(`completedOn should be "", but`, body.CompletedOn)
-		}
-		if body.CreatedAt == "0001-01-01T00:00:00Z" {
-			t.Error("createdAt should be 0001-01-01T00:00:00Z, but", body.CreatedAt)
-		}
-		if body.UpdatedAt == "0001-01-01T00:00:00Z" {
-			t.Error("updatedAt should be 0001-01-01T00:00:00Z, but", body.UpdatedAt)
+		got, ok := body.(taskResponse)
+		if !ok {
+			t.Fatal("Type Assertion failed")
 		}
 
-		teardownTestDB()
+		want := taskResponse{
+			ID:                  1,
+			Title:               "タスク1",
+			ExpectedPomodoroNum: 4,
+			ActualPomodoroNum:   0,
+			DueOn:               "2021-01-01T00:00:00Z",
+			IsCompleted:         false,
+			CompletedOn:         "",
+		}
+
+		if diff := cmp.Diff(got, want, taskResponseCmpOpts); diff != "" {
+			t.Errorf("taskResponse mismatch (-got +want):\n%s", diff)
+		}
 	})
 }
 

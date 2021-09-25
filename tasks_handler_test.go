@@ -228,6 +228,19 @@ func TestPatchTask(t *testing.T) {
 	})
 }
 
+func TestDeleteTask(t *testing.T) {
+	setupTestDB(t)
+	setupTestTasks()
+	t.Cleanup(teardownTestDB)
+	t.Run("タスク1を削除する", func(t *testing.T) {
+		resp, _ := doTestRequest(t, "DELETE", "/tasks/1", nil, nil, "")
+
+		if resp.StatusCode != 204 {
+			t.Error("Status code should be 204, but", resp.StatusCode)
+		}
+	})
+}
+
 func BenchmarkPostTasks(b *testing.B) {
 	setupTestDB(b)
 	b.Cleanup(teardownTestDB)

@@ -8,41 +8,25 @@ import (
 	"time"
 )
 
-func (db *DB) createTask(userID int64, name string, expectedPomodoroNumber int, dueOn time.Time) (int64, error) {
-	const q = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, due_on) VALUES (?, ?, ?, ?)`
-
-	r, err := db.Exec(q, userID, name, expectedPomodoroNumber, dueOn.Format("2006-01-02"))
-	if err != nil {
-		return 0, fmt.Errorf("db.Exec failed: %w", err)
+func (db *DB) createTask(userID int, title string, expectedPomodoroNum int, dueAt time.Time) (int, error) {
+	task := Task{
+		UserID:              userID,
+		Title:               title,
+		ExpectedPomodoroNum: expectedPomodoroNum,
+		DueAt:               dueAt,
 	}
-
-	id, err := r.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("result.lastInsertId failed: %w", err)
+	if err := db.Select("UserID", "Title", "ExpectedPomodoroNum", "DueAt").Create(&task).Error; err != nil {
+		return 0, fmt.Errorf("db.Create failed: %w", err)
 	}
-
-	return id, nil
+	return task.ID, nil
 }
 
-func (db *DB) getTaskByID(id int64) (*task, error) {
-	const q = `
-SELECT T.title, T.expected_pomodoro_number, T.due_on, T.is_completed, T.completed_at, T.created_at, T.updated_at, U.id
-FROM tasks AS T
-JOIN users AS U ON T.user_id = U.id
-WHERE T.id = ?
-`
+func (db *DB) getTaskByID(id int) (*Task, error) {
+	var t Task
 
-	var u user
-	var nullDueOn sql.NullTime
-	var nullCompletedAt sql.NullTime
-	t := task{id: id, user: &u}
-
-	if err := db.QueryRow(q, id).Scan(&t.title, &t.expectedPomodoroNumber, &nullDueOn, &t.isCompleted, &nullCompletedAt, &t.createdAt, &t.updatedAt, &u.id); err != nil {
-		return nil, fmt.Errorf("row.Scan failed: %w", err)
+	if err := db.First(&t, id).Error; err != nil {
+		return nil, fmt.Errorf("db.First failed: %w", err)
 	}
-
-	t.dueOn = nullDueOn.Time
-	t.completedAt = nullCompletedAt.Time
 
 	return &t, nil
 }

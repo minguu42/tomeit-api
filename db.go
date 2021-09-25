@@ -13,10 +13,10 @@ type dbInterface interface {
 	getUserByDigestUID(digestUID string) (*User, error)
 	decrementRestCount(user *user) error
 
-	createTask(userID int64, name string, priority int, deadline time.Time) (int64, error)
-	getTaskByID(id int64) (*task, error)
+	createTask(userID int, title string, priority int, dueAt time.Time) (int, error)
+	getTaskByID(id int) (*Task, error)
 	getTasksByUser(user *user, options *getTasksOptions) ([]*task, error)
-	getActualPomodoroNumberByID(id int64) (int, error)
+	getActualPomodoroNumberByID(id int) (int, error)
 	updateTask(task *task, options *updateTaskOptions) error
 
 	createPomodoro(userID, taskID int64) (int64, error)

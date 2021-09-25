@@ -12,33 +12,35 @@ import (
 )
 
 type taskResponse struct {
-	ID                     int64  `json:"id"`
-	Title                  string `json:"title"`
-	ExpectedPomodoroNumber int    `json:"expectedPomodoroNumber"`
-	ActualPomodoroNumber   int    `json:"actualPomodoroNumber"`
-	DueOn                  string `json:"dueOn"`
-	IsCompleted            bool   `json:"isCompleted"`
-	CompletedAt            string `json:"completedAt"`
-	CreatedAt              string `json:"createdAt"`
-	UpdatedAt              string `json:"updatedAt"`
+	ID                  int    `json:"id"`
+	Title               string `json:"title"`
+	ExpectedPomodoroNum int    `json:"expectedPomodoroNum"`
+	ActualPomodoroNum   int    `json:"actualPomodoroNum"`
+	DueOn               string `json:"dueOn"`
+	IsCompleted         bool   `json:"isCompleted"`
+	CompletedAt         string `json:"completedAt"`
+	CreatedAt           string `json:"createdAt"`
+	UpdatedAt           string `json:"updatedAt"`
 }
 
-func newTaskResponse(t *task, db dbInterface) *taskResponse {
-	c, err := db.getActualPomodoroNumberByID(t.id)
-	if err != nil {
-		c = 0
-	}
+func newTaskResponse(t *Task, db dbInterface) *taskResponse {
+	// TODO: getActualPomodoroNumByID を実装する
+	//c, err := db.getActualPomodoroNumberByID(t.ID)
+	//if err != nil {
+	//	c = 0
+	//}
+	c := 0
 
 	r := taskResponse{
-		ID:                     t.id,
-		Title:                  t.title,
-		ExpectedPomodoroNumber: t.expectedPomodoroNumber,
+		ID:                     t.ID,
+		Title:                  t.Title,
+		ExpectedPomodoroNumber: t.ExpectedPomodoroNum,
 		ActualPomodoroNumber:   c,
-		DueOn:                  t.dueOn.Format(time.RFC3339),
-		IsCompleted:            t.isCompleted,
-		CompletedAt:            t.completedAt.Format(time.RFC3339),
-		CreatedAt:              t.createdAt.Format(time.RFC3339),
-		UpdatedAt:              t.updatedAt.Format(time.RFC3339),
+		DueOn:                  t.DueAt.Format(time.RFC3339),
+		IsCompleted:            t.IsCompleted,
+		CompletedAt:            t.CompletedAt.Format(time.RFC3339),
+		CreatedAt:              t.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:              t.UpdatedAt.Format(time.RFC3339),
 	}
 	return &r
 }
@@ -64,9 +66,9 @@ func (ts *tasksResponse) Render(w http.ResponseWriter, r *http.Request) error {
 }
 
 type postTasksRequest struct {
-	Title                  string `json:"title"`
-	ExpectedPomodoroNumber int    `json:"expectedPomodoroNumber,omitempty"`
-	DueOn                  string `json:"dueOn,omitempty"`
+	Title               string `json:"title"`
+	ExpectedPomodoroNum int    `json:"expectedPomodoroNum,omitempty"`
+	DueOn               string `json:"dueOn,omitempty"`
 }
 
 func (p *postTasksRequest) Bind(r *http.Request) error {
@@ -88,16 +90,16 @@ func PostTasks(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		dueOn, err := time.Parse(time.RFC3339, reqBody.DueOn)
+		dueAt, err := time.Parse(time.RFC3339, reqBody.DueOn)
 		if err != nil {
 			log.Println("time.Parse failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
 
-		user := r.Context().Value(userKey).(*user)
+		user := r.Context().Value(userKey).(*User)
 
-		taskID, err := db.createTask(user.id, reqBody.Title, reqBody.ExpectedPomodoroNumber, dueOn)
+		taskID, err := db.createTask(user.ID, reqBody.Title, reqBody.ExpectedPomodoroNumber, dueAt)
 		if err != nil {
 			log.Println("db.createTask failed:", err)
 			_ = render.Render(w, r, badRequestError(err))

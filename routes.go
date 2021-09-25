@@ -7,6 +7,7 @@ func Route(r chi.Router, db dbInterface) {
 		r.Post("/", postTasks(db))
 		r.Get("/", getTasks(db))
 		r.Patch("/{taskID}", patchTask(db))
+		r.Delete("/{taskID}", deleteTask(db))
 	})
 
 	r.Route("/pomodoros", func(r chi.Router) {

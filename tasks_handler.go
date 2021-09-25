@@ -228,3 +228,32 @@ func patchTask(db dbInterface) http.HandlerFunc {
 		}
 	}
 }
+
+func deleteTask(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		taskID, err := strconv.ParseInt(chi.URLParam(r, "taskID"), 10, 64)
+		if err != nil {
+			log.Println("strconv.ParseInt failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+
+		user := r.Context().Value(userKey).(*User)
+
+		task, err := db.getTaskByID(int(taskID))
+		if err != nil {
+			log.Println("db.getTaskByID failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+		if user.ID != task.UserID {
+			log.Println("user.id != task.userID")
+			_ = render.Render(w, r, AuthorizationError(errors.New("task's userID does not match your userID")))
+			return
+		}
+
+		db.deleteTask(task)
+
+		w.WriteHeader(204)
+	}
+}

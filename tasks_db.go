@@ -80,3 +80,7 @@ func (db *DB) getTasksByUser(user *User, options *getTasksOptions) ([]Task, erro
 func (db *DB) updateTask(task *Task) {
 	db.Save(task)
 }
+
+func (db *DB) deleteTask(task *Task) {
+	db.Delete(task)
+}

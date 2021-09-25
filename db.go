@@ -18,6 +18,7 @@ type dbInterface interface {
 	getTasksByUser(user *User, options *getTasksOptions) ([]Task, error)
 	//getActualPomodoroNumberByID(id int) (int, error)
 	updateTask(task *Task)
+	deleteTask(task *Task)
 
 	//createPomodoro(userID, taskID int64) (int64, error)
 	//getPomodoroByID(id int64) (*pomodoro, error)

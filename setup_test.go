@@ -21,7 +21,7 @@ var (
 func TestMain(m *testing.M) {
 	firebaseApp := &firebaseAppMock{}
 
-	testDB = OpenDB("test:password@tcp(localhost:13306)/db_test?parseTime=true")
+	testDB = OpenDB("test:password@tcp(localhost:13306)/db_test?charset=utf8mb4&parseTime=true")
 	defer CloseDB(testDB)
 
 	r := chi.NewRouter()
@@ -41,7 +41,7 @@ func TestMain(m *testing.M) {
 }
 
 func setupTestDB(tb testing.TB) {
-	file, err := os.ReadFile(filepath.Join(".", "build", "setup.sql"))
+	file, err := os.ReadFile(filepath.Join(".", "build", "create_tables.sql"))
 	if err != nil {
 		tb.Fatal("os.ReadFile failed:", err)
 	}
@@ -60,7 +60,7 @@ func setupTestDB(tb testing.TB) {
 	testDB.Exec(createTestUser)
 }
 
-func shutdownTestDB(tb testing.TB) {
+func teardownTestDB() {
 	const dropPomodorosTable = `DROP TABLE IF EXISTS pomodoros`
 	const dropTasksTable = `DROP TABLE IF EXISTS tasks`
 	const dropUsersTable = `DROP TABLE IF EXISTS users`

@@ -20,9 +20,9 @@ type Task struct {
 	User                User
 	Title               string
 	ExpectedPomodoroNum int
-	DueAt               time.Time
+	DueAt               *time.Time
 	IsCompleted         bool
-	CompletedAt         time.Time
+	CompletedAt         *time.Time
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }

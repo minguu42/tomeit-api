@@ -236,169 +236,35 @@ func TestPatchTask(t *testing.T) {
 	})
 }
 
-//func TestPatchTask(t *testing.T) {
-//	t.Run("タスク1の isCompleted の値を true に変更する", func(t *testing.T) {
-//		setupTestDB(t)
-//		setupTestPatchTask(t)
-//
-//		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
-//		req, err := http.NewRequest("PATCH", testUrl+"/tasks/1", reqBody)
-//		if err != nil {
-//			t.Error("Create request failed:", err)
-//		}
-//
-//		resp, err := testClient.Do(req)
-//		if err != nil {
-//			t.Error("Do request failed:", err)
-//		}
-//
-//		bytes, err := io.ReadAll(resp.Body)
-//		if err != nil {
-//			t.Error("Read response failed:", err)
-//		}
-//		if err := resp.Body.Close(); err != nil {
-//			t.Error("Close response failed:", err)
-//		}
-//
-//		var body taskResponse
-//		if err := json.Unmarshal(bytes, &body); err != nil {
-//			t.Error("Unmarshal json failed:", err)
-//		}
-//
-//		if resp.StatusCode != 200 {
-//			t.Error("Status code should be 200, but", resp.StatusCode)
-//		}
-//		if body.ID != 1 {
-//			t.Error("Id should be 1, but", body.ID)
-//		}
-//		if body.Title != "タスク1" {
-//			t.Error("Title should be タスク1, but", body.Title)
-//		}
-//		if body.ExpectedPomodoroNumber != 0 {
-//			t.Error("ExpectedPomodoroNumber should be 0, but", body.ExpectedPomodoroNumber)
-//		}
-//		if body.ActualPomodoroNumber != 0 {
-//			t.Error("ActualPomodoroNumber should be 0, but", body.ActualPomodoroNumber)
-//		}
-//		if body.DueOn != "0001-01-01T00:00:00Z" {
-//			t.Error("DueOn should be 0001-01-01, but", body.DueOn)
-//		}
-//		if body.IsCompleted != true {
-//			t.Error("IsCompleted should be true, but", body.IsCompleted)
-//		}
-//		if body.CompletedAt == "" {
-//			t.Error("CompletedAt does not exist")
-//		}
-//		if body.CreatedAt == "" {
-//			t.Error("CreatedAt does not exist")
-//		}
-//		if body.UpdatedAt == "" {
-//			t.Error("UpdatedAt does not exist")
-//		}
-//
-//		shutdownTestDB(t)
-//	})
-//	t.Run("タスク2の isCompleted の値を false に変更する", func(t *testing.T) {
-//		setupTestDB(t)
-//		setupTestPatchTask(t)
-//
-//		reqBody := strings.NewReader(`{"isCompleted": "false"}`)
-//		req, err := http.NewRequest("PATCH", testUrl+"/tasks/2", reqBody)
-//		if err != nil {
-//			t.Error("Create request failed:", err)
-//		}
-//
-//		resp, err := testClient.Do(req)
-//		if err != nil {
-//			t.Error("Do request failed:", err)
-//		}
-//
-//		bytes, err := io.ReadAll(resp.Body)
-//		if err != nil {
-//			t.Error("Read response failed:", err)
-//		}
-//		if err := resp.Body.Close(); err != nil {
-//			t.Error("Close response failed:", err)
-//		}
-//
-//		var body taskResponse
-//		if err := json.Unmarshal(bytes, &body); err != nil {
-//			t.Error("Unmarshal json failed:", err)
-//		}
-//
-//		if resp.StatusCode != 200 {
-//			t.Error("Status code should be 200, but", resp.StatusCode)
-//		}
-//		if body.ID != 2 {
-//			t.Error("Id should be 1, but", body.ID)
-//		}
-//		if body.Title != "タスク2" {
-//			t.Error("Title should be タスク1, but", body.Title)
-//		}
-//		if body.ExpectedPomodoroNumber != 3 {
-//			t.Error("ExpectedPomodoroNumber should be 0, but", body.ExpectedPomodoroNumber)
-//		}
-//		if body.ActualPomodoroNumber != 0 {
-//			t.Error("ActualPomodoroNumber should be 0, but", body.ActualPomodoroNumber)
-//		}
-//		if body.DueOn != "0001-01-01T00:00:00Z" {
-//			t.Error("DueOn should be 0001-01-01, but", body.DueOn)
-//		}
-//		if body.IsCompleted != false {
-//			t.Error("IsCompleted should be false, but", body.IsCompleted)
-//		}
-//		if body.CompletedAt == "" {
-//			t.Error("CompletedAt does not exist")
-//		}
-//		if body.CreatedAt == "" {
-//			t.Error("CreatedAt does not exist")
-//		}
-//		if body.UpdatedAt == "" {
-//			t.Error("UpdatedAt does not exist")
-//		}
-//
-//		shutdownTestDB(t)
-//	})
-//}
-//
-//func BenchmarkPostTasks(b *testing.B) {
-//	setupTestDB(b)
-//
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		reqBody := strings.NewReader(`{"title": "タスク", "expectedPomodoroNumber": 0, "dueOn": "0001-01-01T00:00:00Z"}`)
-//		req, _ := http.NewRequest("POST", testUrl+"/tasks", reqBody)
-//
-//		_, _ = testClient.Do(req)
-//	}
-//
-//	shutdownTestDB(b)
-//}
-//
-//func BenchmarkGetTasks(b *testing.B) {
-//	setupTestDB(b)
-//	setupTestGetTasks(b)
-//
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		req, _ := http.NewRequest("GET", testUrl+"/tasks", nil)
-//
-//		_, _ = testClient.Do(req)
-//	}
-//
-//	shutdownTestDB(b)
-//}
-//
-//func BenchmarkPatchTask(b *testing.B) {
-//	setupTestDB(b)
-//	setupTestPatchTask(b)
-//
-//	for i := 0; i < b.N; i++ {
-//		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
-//		req, _ := http.NewRequest("PATCH", testUrl+"/tasks/1", reqBody)
-//
-//		_, _ = testClient.Do(req)
-//	}
-//
-//	shutdownTestDB(b)
-//}
+func BenchmarkPostTasks(b *testing.B) {
+	setupTestDB(b)
+	b.Cleanup(teardownTestDB)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		body := strings.NewReader(`{"title": "タスク", "expectedPomodoroNum": 0, "dueOn": ""}`)
+		_, _ = doTestRequest(b, "POST", "/tasks", nil, body, "taskResponse")
+	}
+}
+
+func BenchmarkGetTasks(b *testing.B) {
+	setupTestDB(b)
+	setupTestGetTasks()
+	b.Cleanup(teardownTestDB)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = doTestRequest(b, "GET", "/tasks", nil, nil, "tasksResponse")
+	}
+}
+
+func BenchmarkPatchTask(b *testing.B) {
+	setupTestDB(b)
+	setupTestPatchTask()
+	b.Cleanup(teardownTestDB)
+
+	for i := 0; i < b.N; i++ {
+		body := strings.NewReader(`{"isCompleted": "true"}`)
+		_, _ = doTestRequest(b, "PATCH", "/tasks/1", nil, body, "taskResponse")
+	}
+}

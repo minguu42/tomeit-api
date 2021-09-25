@@ -53,9 +53,9 @@ func TestPostTasks(t *testing.T) {
 	})
 }
 
-func setupTestGetTasks() {
+func setupTestTasks() {
 	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, due_at, is_completed) VALUES (1, 'タスク1', 0, '2021-01-01', false)`
-	const createTask2 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, due_at, is_completed, completed_at) VALUES (1, 'タスク2', 1, '2021-12-31', true, '2021-08-31 12:30:00')`
+	const createTask2 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, due_at, is_completed, completed_at) VALUES (1, 'タスク2', 2, '2021-12-31', true, '2021-08-31 12:30:00')`
 
 	testDB.Exec(createTask1)
 	testDB.Exec(createTask2)
@@ -63,7 +63,7 @@ func setupTestGetTasks() {
 
 func TestGetTasks(t *testing.T) {
 	setupTestDB(t)
-	setupTestGetTasks()
+	setupTestTasks()
 	t.Cleanup(teardownTestDB)
 	t.Run("タスク一覧を取得する", func(t *testing.T) {
 		resp, body := doTestRequest(t, "GET", "/tasks", nil, nil, "tasksResponse")
@@ -89,7 +89,7 @@ func TestGetTasks(t *testing.T) {
 				{
 					ID:                  2,
 					Title:               "タスク2",
-					ExpectedPomodoroNum: 1,
+					ExpectedPomodoroNum: 2,
 					ActualPomodoroNum:   0,
 					DueOn:               "2021-12-31T00:00:00Z",
 					IsCompleted:         true,
@@ -124,7 +124,7 @@ func TestGetTasks(t *testing.T) {
 				{
 					ID:                  2,
 					Title:               "タスク2",
-					ExpectedPomodoroNum: 1,
+					ExpectedPomodoroNum: 2,
 					ActualPomodoroNum:   0,
 					DueOn:               "2021-12-31T00:00:00Z",
 					IsCompleted:         true,
@@ -156,7 +156,7 @@ func TestGetTasks(t *testing.T) {
 				{
 					ID:                  2,
 					Title:               "タスク2",
-					ExpectedPomodoroNum: 1,
+					ExpectedPomodoroNum: 2,
 					ActualPomodoroNum:   0,
 					DueOn:               "2021-12-31T00:00:00Z",
 					IsCompleted:         true,
@@ -170,17 +170,9 @@ func TestGetTasks(t *testing.T) {
 	})
 }
 
-func setupTestPatchTask() {
-	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, is_completed) VALUES (1, 'タスク1', 0, false)`
-	const createTask2 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, is_completed) VALUES (1, 'タスク2', 3, true)`
-
-	testDB.Exec(createTask1)
-	testDB.Exec(createTask2)
-}
-
 func TestPatchTask(t *testing.T) {
 	setupTestDB(t)
-	setupTestPatchTask()
+	setupTestTasks()
 	t.Cleanup(teardownTestDB)
 	t.Run("タスク1の isCompleted の値を true に変更する", func(t *testing.T) {
 		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
@@ -200,7 +192,7 @@ func TestPatchTask(t *testing.T) {
 			Title:               "タスク1",
 			ExpectedPomodoroNum: 0,
 			ActualPomodoroNum:   0,
-			DueOn:               "",
+			DueOn:               "2021-01-01T00:00:00Z",
 			IsCompleted:         true,
 		}
 
@@ -224,9 +216,9 @@ func TestPatchTask(t *testing.T) {
 		want := taskResponse{
 			ID:                  2,
 			Title:               "タスク2",
-			ExpectedPomodoroNum: 3,
+			ExpectedPomodoroNum: 2,
 			ActualPomodoroNum:   0,
-			DueOn:               "",
+			DueOn:               "2021-12-31T00:00:00Z",
 			IsCompleted:         false,
 		}
 
@@ -249,7 +241,7 @@ func BenchmarkPostTasks(b *testing.B) {
 
 func BenchmarkGetTasks(b *testing.B) {
 	setupTestDB(b)
-	setupTestGetTasks()
+	setupTestTasks()
 	b.Cleanup(teardownTestDB)
 
 	b.ResetTimer()
@@ -260,7 +252,7 @@ func BenchmarkGetTasks(b *testing.B) {
 
 func BenchmarkPatchTask(b *testing.B) {
 	setupTestDB(b)
-	setupTestPatchTask()
+	setupTestTasks()
 	b.Cleanup(teardownTestDB)
 
 	for i := 0; i < b.N; i++ {

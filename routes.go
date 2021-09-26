@@ -11,7 +11,7 @@ func Route(r chi.Router, db dbInterface) {
 	})
 
 	r.Route("/pomodoros", func(r chi.Router) {
-		//r.Post("/", tomeit.PostPomodoros(db))
+		r.Post("/", postPomodoros(db))
 		//r.Get("/", tomeit.GetPomodoros(db))
 
 		//r.Get("/rest-count", tomeit.GetRestCount)

@@ -1,9 +1,12 @@
 package tomeit
 
-//type pomodoro struct {
-//	id          int64
-//	user        *user
-//	task        *task
-//	completedAt time.Time
-//	createdAt   time.Time
-//}
+import "time"
+
+type Pomodoro struct {
+	ID        int
+	UserID    int
+	User      User
+	TaskID    int
+	Task      Task
+	CreatedAt time.Time
+}

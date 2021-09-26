@@ -2,10 +2,11 @@ package tomeit
 
 import (
 	"errors"
-	"github.com/go-chi/render"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/go-chi/render"
 )
 
 type pomodoroResponse struct {
@@ -26,23 +27,7 @@ func newPomodoroResponse(p *Pomodoro, db dbInterface) *pomodoroResponse {
 func (p *pomodoroResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
-//
-//type pomodorosResponse struct {
-//	Pomodoros []*pomodoroResponse `json:"pomodoros"`
-//}
-//
-//func newPomodorosResponse(pomodoroRecords []*pomodoro, db dbInterface) *pomodorosResponse {
-//	var ps []*pomodoroResponse
-//	for _, p := range pomodoroRecords {
-//		ps = append(ps, newPomodoroResponse(p, db))
-//	}
-//	return &pomodorosResponse{Pomodoros: ps}
-//}
-//
-//func (ps *pomodorosResponse) Render(w http.ResponseWriter, r *http.Request) error {
-//	return nil
-//}
-//
+
 type postPomodorosRequest struct {
 	TaskID int `json:"taskID"`
 }
@@ -92,42 +77,50 @@ func postPomodoros(db dbInterface) http.HandlerFunc {
 		}
 	}
 }
-//
-//func GetPomodoros(db dbInterface) http.HandlerFunc {
-//	return func(w http.ResponseWriter, r *http.Request) {
-//		existCompletedOn := true
-//		completedOnStr := r.URL.Query().Get("completed-on")
-//		completedOn, err := time.Parse(time.RFC3339, completedOnStr)
-//		if err != nil {
-//			if completedOnStr == "" {
-//				existCompletedOn = false
-//			} else {
-//				_ = render.Render(w, r, badRequestError(errors.New("completed-on value is invalid")))
-//				return
-//			}
-//		}
-//
-//		options := getPomodorosOptions{
-//			existCompletedOn: existCompletedOn,
-//			completedOn:      completedOn,
-//		}
-//
-//		user := r.Context().Value(userKey).(*user)
-//
-//		pomodoros, err := db.getPomodorosByUser(user, &options)
-//		if err != nil {
-//			log.Println("db.getPomodorosByUser failed:", err)
-//			_ = render.Render(w, r, badRequestError(err))
-//			return
-//		}
-//
-//		if err := render.Render(w, r, newPomodorosResponse(pomodoros, db)); err != nil {
-//			log.Println("render.Render failed:", err)
-//			_ = render.Render(w, r, internalServerError(err))
-//			return
-//		}
-//	}
-//}
+
+type pomodorosResponse struct {
+	Pomodoros []*pomodoroResponse `json:"pomodoros"`
+}
+
+func newPomodorosResponse(pomodoroRecords []Pomodoro, db dbInterface) *pomodorosResponse {
+	var ps []*pomodoroResponse
+	for _, p := range pomodoroRecords {
+		ps = append(ps, newPomodoroResponse(&p, db))
+	}
+	return &pomodorosResponse{Pomodoros: ps}
+}
+
+func (ps *pomodorosResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func getPomodoros(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var options getPomodorosOptions
+		completedOnStr := r.URL.Query().Get("completedOn")
+		completedOn, err := time.Parse(time.RFC3339, completedOnStr)
+		if err == nil {
+			options.existCompletedOn = true
+			options.completedOn = completedOn
+		}
+
+		user := r.Context().Value(userKey).(*User)
+
+		pomodoros, err := db.getPomodorosByUser(user, &options)
+		if err != nil {
+			log.Println("db.getPomodorosByUser failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+
+		if err := render.Render(w, r, newPomodorosResponse(pomodoros, db)); err != nil {
+			log.Println("render.Render failed:", err)
+			_ = render.Render(w, r, internalServerError(err))
+			return
+		}
+	}
+}
+
 //
 //type restCountResponse struct {
 //	RestCount int `json:"restCount"`

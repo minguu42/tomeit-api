@@ -2,6 +2,7 @@ package tomeit
 
 import (
 	"fmt"
+	"time"
 )
 
 func (db *DB) createPomodoro(userID, taskID int) (int, error) {
@@ -30,54 +31,28 @@ func (db *DB) getPomodoroByID(id int) (*Pomodoro, error) {
 
 	return &pomodoro, nil
 }
-//
-//type getPomodorosOptions struct {
-//	existCompletedOn bool
-//	completedOn      time.Time
-//}
-//
-//func (db *DB) getPomodorosByUser(user *user, options *getPomodorosOptions) ([]*pomodoro, error) {
-//	var optionList []string
-//	if options != nil {
-//		if options.existCompletedOn {
-//			optionList = append(optionList, "AND DATE(P.completed_at) = '"+options.completedOn.Format("2006-01-02")+"'")
-//		}
-//	}
-//
-//	q := `
-//SELECT P.id, P.completed_at, P.created_at, T.id, T.title, T.expected_pomodoro_number, T.due_on, T.is_completed, T.completed_at,T.created_at, T.updated_at
-//FROM pomodoros AS P
-//JOIN tasks AS T ON P.task_id = T.id
-//WHERE P.user_id = ?
-//`
-//	for _, option := range optionList {
-//		q = q + option
-//	}
-//	q = q + `
-//ORDER BY P.created_at
-//LIMIT 30
-//`
-//	var ps []*pomodoro
-//	rows, err := db.Query(q, user.id)
-//	if err != nil {
-//		return nil, fmt.Errorf("db.Query failed: %w", err)
-//	}
-//
-//	for rows.Next() {
-//		var t task
-//		var nullDueOn sql.NullTime
-//		var nullCompletedAt sql.NullTime
-//		p := pomodoro{
-//			user: user,
-//		}
-//		if err := rows.Scan(&p.id, &p.completedAt, &p.createdAt, &t.id, &t.title, &t.expectedPomodoroNumber, &nullDueOn, &t.isCompleted, &nullCompletedAt, &t.createdAt, &t.updatedAt); err != nil {
-//			return nil, fmt.Errorf("rows.Scan failed: %w", err)
-//		}
-//		t.dueOn = nullDueOn.Time
-//		t.completedAt = nullCompletedAt.Time
-//		p.task = &t
-//		ps = append(ps, &p)
-//	}
-//
-//	return ps, nil
-//}
+
+type getPomodorosOptions struct {
+	existCompletedOn bool
+	completedOn      time.Time
+}
+
+func (db *DB) getPomodorosByUser(user *User, options *getPomodorosOptions) ([]Pomodoro, error) {
+	q := db.Select("pomodoros.id, pomodoros.user_id, pomodoros.task_id, tasks.id, tasks.title, tasks.expected_pomodoro_num, tasks.due_at, tasks.is_completed, tasks.completed_at, tasks.created_at, tasks.updated_at, pomodoros.created_at").Joins("JOIN tasks ON pomodoros.task_id = tasks.id").Where("user_id = ?", user.ID)
+
+	if options != nil {
+		if options.existCompletedOn {
+			y, m, d := options.completedOn.Date()
+			start := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+			end := time.Date(y, m, d, 23, 59, 59, 0, time.UTC)
+			q = q.Where("completed_at BETWEEN ? AND ?", start, end)
+		}
+	}
+
+	var pomodoros []Pomodoro
+	if err := q.Order("created_at").Limit(30).Find(&pomodoros).Error; err != nil {
+		return nil, fmt.Errorf("db.Find failed: %w", err)
+	}
+
+	return pomodoros, nil
+}

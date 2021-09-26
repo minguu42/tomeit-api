@@ -22,7 +22,7 @@ type dbInterface interface {
 
 	createPomodoro(userID, taskID int) (int, error)
 	getPomodoroByID(id int) (*Pomodoro, error)
-	//getPomodorosByUser(user *user, options *getPomodorosOptions) ([]*pomodoro, error)
+	getPomodorosByUser(user *User, options *getPomodorosOptions) ([]Pomodoro, error)
 }
 
 type DB struct {

@@ -320,8 +320,8 @@ components:
           example: 1
         task:
           $ref: "#/components/schemas/Task"
-        completedAt:
-          description: ポモドーロを完了した時刻
+        createdAt:
+          description: ポモドーロ記録を作成した時刻
           type: string
           example: "2021-01-01T00:00:00Z"
     Pomodoros:

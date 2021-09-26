@@ -17,10 +17,11 @@ import (
 )
 
 var (
-	testClient          *http.Client
-	testUrl             string
-	testDB              *DB
-	taskResponseCmpOpts = cmpopts.IgnoreFields(taskResponse{}, "CreatedAt", "UpdatedAt")
+	testClient              *http.Client
+	testUrl                 string
+	testDB                  *DB
+	taskResponseCmpOpts     = cmpopts.IgnoreFields(taskResponse{}, "CompletedOn", "CreatedAt", "UpdatedAt")
+	pomodoroResponseCmpOpts = cmpopts.IgnoreFields(pomodoroResponse{}, "Task.CompletedOn", "Task.CreatedAt", "Task.UpdatedAt", "CreatedAt")
 )
 
 func TestMain(m *testing.M) {
@@ -75,10 +76,18 @@ func teardownTestDB() {
 	testDB.Exec(dropUsersTable)
 }
 
-func doTestRequest(tb testing.TB, method, path string, body io.Reader, respBodyType string) (*http.Response, interface{}) {
+func doTestRequest(tb testing.TB, method, path string, params *map[string]string, body io.Reader, respBodyType string) (*http.Response, interface{}) {
 	req, err := http.NewRequest(method, testUrl+path, body)
 	if err != nil {
 		tb.Fatal("Create request failed:", err)
+	}
+
+	if params != nil {
+		ps := req.URL.Query()
+		for k, v := range *params {
+			ps.Add(k, v)
+		}
+		req.URL.RawQuery = ps.Encode()
 	}
 
 	resp, err := testClient.Do(req)
@@ -94,10 +103,23 @@ func doTestRequest(tb testing.TB, method, path string, body io.Reader, respBodyT
 		tb.Fatal("Close respBody failed:", err)
 	}
 
-	if respBodyType == "taskResponse" {
+	switch respBodyType {
+	case "taskResponse":
 		var respBody taskResponse
 		if err := json.Unmarshal(bytes, &respBody); err != nil {
-			tb.Fatal("Unmarshal json failed:", err)
+			return resp, nil
+		}
+		return resp, respBody
+	case "tasksResponse":
+		var respBody tasksResponse
+		if err := json.Unmarshal(bytes, &respBody); err != nil {
+			return resp, nil
+		}
+		return resp, respBody
+	case "pomodoroResponse":
+		var respBody pomodoroResponse
+		if err := json.Unmarshal(bytes, &respBody); err != nil {
+			return resp, nil
 		}
 		return resp, respBody
 	}

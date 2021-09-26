@@ -1,96 +1,47 @@
 package tomeit
 
-//import (
-//	"encoding/json"
-//	"io"
-//	"net/http"
-//	"strings"
-//	"testing"
-//	"time"
-//)
-//
-//func setupTestPostPomodoros(tb testing.TB) {
-//	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, due_on, is_completed) VALUES (1, 'タスク1', 0, '2018-12-31', false)`
-//
-//	if _, err := testDB.Exec(createTask1); err != nil {
-//		tb.Fatal("setupTestPostPomodoroLog failed:", err)
-//	}
-//}
-//
-//func TestPostPomodoros(t *testing.T) {
-//	t.Run("ポモドーロを記録する", func(t *testing.T) {
-//		setupTestDB(t)
-//		setupTestPostPomodoros(t)
-//
-//		reqBody := strings.NewReader(`{"taskID": 1 }`)
-//		req, err := http.NewRequest("POST", testUrl+"/pomodoros", reqBody)
-//		if err != nil {
-//			t.Error("Create request failed:", err)
-//		}
-//
-//		resp, err := testClient.Do(req)
-//		if err != nil {
-//			t.Error("Do request failed:", err)
-//		}
-//
-//		bytes, err := io.ReadAll(resp.Body)
-//		if err != nil {
-//			t.Error("Read response failed:", err)
-//		}
-//		if err := resp.Body.Close(); err != nil {
-//			t.Error("Close response failed:", err)
-//		}
-//
-//		var body pomodoroResponse
-//		if err := json.Unmarshal(bytes, &body); err != nil {
-//			t.Error("Unmarshal json failed:", err)
-//		}
-//
-//		if resp.StatusCode != 201 {
-//			t.Error("Status code should be 201, but", resp.StatusCode)
-//		}
-//
-//		if body.ID != 1 {
-//			t.Error("ID should be 1, but", body.ID)
-//		}
-//		task := body.Task
-//		if task.ID != 1 {
-//			t.Error("ID should be 1, but", task.ID)
-//		}
-//		if task.Title != "タスク1" {
-//			t.Error("Title should be タスク2, but", task.Title)
-//		}
-//		if task.ExpectedPomodoroNumber != 0 {
-//			t.Error("ExpectedPomodoroNumber should be 1, but", task.ExpectedPomodoroNumber)
-//		}
-//		if task.ActualPomodoroNumber != 1 {
-//			t.Error("ActualPomodoroNumber should be 1, but", task.ActualPomodoroNumber)
-//		}
-//		if task.DueOn != "2018-12-31T00:00:00Z" {
-//			t.Error("DueOn should be 2018-12-31T00:00:00Z, but", task.DueOn)
-//		}
-//		if task.IsCompleted != false {
-//			t.Error("IsCompleted should be false, but", task.IsCompleted)
-//		}
-//		if task.CompletedAt != "0001-01-01T00:00:00Z" {
-//			t.Error("CompletedAt should be 0001-01-01T00:00:00Z, but", task.CompletedAt)
-//		}
-//		if task.CreatedAt == "0001-01-01T00:00:00Z" {
-//			t.Error("CreatedAt should not be 0001-01-01T00:00:00Z")
-//		}
-//		if task.UpdatedAt == "0001-01-01T00:00:00Z" {
-//			t.Error("UpdatedAt should not be 0001-01-01T00:00:00Z")
-//		}
-//		if body.CompletedAt == "0001-01-01T00:00:00Z" {
-//			t.Error("CompletedAt should not be 0001-01-01T00:00:00Z")
-//		}
-//		if body.CreatedAt == "0001-01-01T00:00:00Z" {
-//			t.Error("CreatedAt does not exist")
-//		}
-//
-//		shutdownTestDB(t)
-//	})
-//}
+import (
+	"strings"
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+)
+
+func TestPostPomodoros(t *testing.T) {
+	setupTestDB(t)
+	setupTestTasks()
+	t.Cleanup(teardownTestDB)
+	t.Run("タスク1のポモドーロを記録する", func(t *testing.T) {
+		reqBody := strings.NewReader(`{"taskID": 1}`)
+		resp, body := doTestRequest(t, "POST", "/pomodoros", nil, reqBody, "pomodoroResponse")
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+
+		got, ok := body.(pomodoroResponse)
+		if !ok {
+			t.Fatal("Type Assertion failed")
+		}
+
+		want := pomodoroResponse{
+			ID: 1,
+			Task: &taskResponse{
+				ID:                  1,
+				Title:               "タスク1",
+				ExpectedPomodoroNum: 0,
+				ActualPomodoroNum:   0,
+				DueOn:               "2021-01-01T00:00:00Z",
+				IsCompleted:         false,
+			},
+		}
+
+		if diff := cmp.Diff(got, want, pomodoroResponseCmpOpts); diff != "" {
+			t.Errorf("pomodoroResponse mismatch (-got +want):\n%s", diff)
+		}
+	})
+}
+
 //
 //func setupTestGetPomodoros(tb testing.TB) {
 //	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_number, is_completed) VALUES (1, 'タスク1', 0, false)`
@@ -266,7 +217,7 @@ package tomeit
 //
 //func BenchmarkPostPomodoros(b *testing.B) {
 //	setupTestDB(b)
-//	setupTestPostPomodoros(b)
+//	setupTestPomodoros(b)
 //	defer shutdownTestDB(b)
 //
 //	for i := 0; i < b.N; i++ {

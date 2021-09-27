@@ -26,12 +26,10 @@ type taskResponse struct {
 }
 
 func newTaskResponse(t *Task, db dbInterface) *taskResponse {
-	// TODO: getActualPomodoroNumByID を実装する
-	//c, err := db.getActualPomodoroNumberByID(t.ID)
-	//if err != nil {
-	//	c = 0
-	//}
-	c := 0
+	c, err := db.getActualPomodoroNumByID(t.ID)
+	if err != nil {
+		c = 0
+	}
 
 	var dueOn string
 	if t.DueAt != nil {

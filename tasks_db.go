@@ -65,17 +65,15 @@ func (db *DB) getTasksByUser(user *User, options *getTasksOptions) ([]Task, erro
 	return tasks, nil
 }
 
-//func (db *DB) getActualPomodoroNumberByID(id int64) (int, error) {
-//	const q = `SELECT COUNT(*) FROM pomodoros WHERE task_id = ?`
-//
-//	var c int
-//	if err := db.QueryRow(q, id).Scan(&c); err != nil {
-//		return 0, fmt.Errorf("row.Scan failed: %w", err)
-//	}
-//
-//	return c, nil
-//}
-//
+func (db *DB) getActualPomodoroNumByID(id int) (int, error) {
+	var c int64
+
+	if err := db.Model(&Pomodoro{}).Where("task_id = ?", id).Count(&c).Error; err != nil {
+		return 0, fmt.Errorf("db.Count failed: %w", err)
+	}
+
+	return int(c), nil
+}
 
 func (db *DB) updateTask(task *Task) {
 	db.Save(task)

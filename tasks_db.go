@@ -5,6 +5,15 @@ import (
 	"time"
 )
 
+type taskDBInterface interface {
+	createTask(userID int, title string, priority int, dueAt time.Time) (int, error)
+	getTaskByID(id int) (*Task, error)
+	getTasksByUser(user *User, options *getTasksOptions) ([]Task, error)
+	getActualPomodoroNumByID(id int) (int, error)
+	updateTask(task *Task)
+	deleteTask(task *Task)
+}
+
 func (db *DB) createTask(userID int, title string, expectedPomodoroNum int, dueAt time.Time) (int, error) {
 	task := Task{
 		UserID:              userID,

@@ -9,21 +9,9 @@ import (
 )
 
 type dbInterface interface {
-	createUser(digestUID string) (*User, error)
-	getUserByDigestUID(digestUID string) (*User, error)
-	decrementRestCount(user *User) error
-
-	createTask(userID int, title string, priority int, dueAt time.Time) (int, error)
-	getTaskByID(id int) (*Task, error)
-	getTasksByUser(user *User, options *getTasksOptions) ([]Task, error)
-	getActualPomodoroNumByID(id int) (int, error)
-	updateTask(task *Task)
-	deleteTask(task *Task)
-
-	createPomodoro(userID, taskID int) (int, error)
-	getPomodoroByID(id int) (*Pomodoro, error)
-	getPomodorosByUser(user *User, options *getPomodorosOptions) ([]Pomodoro, error)
-	deletePomodoro(pomodoro *Pomodoro)
+	userDBInterface
+	taskDBInterface
+	pomodoroDBInterface
 }
 
 type DB struct {

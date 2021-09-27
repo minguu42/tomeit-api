@@ -8,6 +8,12 @@ import (
 	"gorm.io/gorm"
 )
 
+type userDBInterface interface {
+	createUser(digestUID string) (*User, error)
+	getUserByDigestUID(digestUID string) (*User, error)
+	decrementRestCount(user *User) error
+}
+
 func (db *DB) createUser(digestUID string) (*User, error) {
 	createdAt := time.Now()
 

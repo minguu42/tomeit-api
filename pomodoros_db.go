@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+type pomodoroDBInterface interface {
+	createPomodoro(userID, taskID int) (int, error)
+	getPomodoroByID(id int) (*Pomodoro, error)
+	getPomodorosByUser(user *User, options *getPomodorosOptions) ([]Pomodoro, error)
+	deletePomodoro(pomodoro *Pomodoro)
+}
+
 func (db *DB) createPomodoro(userID, taskID int) (int, error) {
 	pomodoro := Pomodoro{
 		UserID: userID,

@@ -108,45 +108,31 @@ func TestGetPomodoros(t *testing.T) {
 	})
 }
 
-//
-//func TestGetRestCount(t *testing.T) {
-//	t.Run("次の15分休憩までのカウントを取得する", func(t *testing.T) {
-//		setupTestDB(t)
-//
-//		req, err := http.NewRequest("GET", testUrl+"/pomodoros/rest-count", nil)
-//		if err != nil {
-//			t.Error("Create request failed:", err)
-//		}
-//
-//		resp, err := testClient.Do(req)
-//		if err != nil {
-//			t.Error("Do request failed:", err)
-//		}
-//
-//		bytes, err := io.ReadAll(resp.Body)
-//		if err != nil {
-//			t.Error("Read response failed:", err)
-//		}
-//		if err := resp.Body.Close(); err != nil {
-//			t.Error("Close response failed:", err)
-//		}
-//
-//		var body restCountResponse
-//		if err := json.Unmarshal(bytes, &body); err != nil {
-//			t.Error("Unmarshal json failed:", err)
-//		}
-//
-//		if resp.StatusCode != 200 {
-//			t.Error("Status code should be 200, but", resp.StatusCode)
-//		}
-//		if body.RestCount != 4 {
-//			t.Error("restCount should be 4, but", body.RestCount)
-//		}
-//
-//		shutdownTestDB(t)
-//	})
-//}
-//
+func TestGetRestCount(t *testing.T) {
+	setupTestDB(t)
+	t.Cleanup(teardownTestDB)
+	t.Run("次の15分休憩までのカウントを取得する", func(t *testing.T) {
+		resp, body := doTestRequest(t, "GET", "/pomodoros/rest-count", nil, nil, "restCountResponse")
+
+		if resp.StatusCode != 200 {
+			t.Error("Status code should be 200, but", resp.StatusCode)
+		}
+
+		got, ok := body.(restCountResponse)
+		if !ok {
+			t.Fatal("type assertion error")
+		}
+
+		want := restCountResponse{
+			RestCount: 4,
+		}
+
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("restCountResponse mismatch (-got +want):\n%s", diff)
+		}
+	})
+}
+
 //func BenchmarkPostPomodoros(b *testing.B) {
 //	setupTestDB(b)
 //	setupTestPomodoros(b)

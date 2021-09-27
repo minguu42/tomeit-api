@@ -122,6 +122,12 @@ func doTestRequest(tb testing.TB, method, path string, params *map[string]string
 			return resp, nil
 		}
 		return resp, respBody
+	case "pomodorosResponse":
+		var respBody pomodorosResponse
+		if err := json.Unmarshal(bytes, &respBody); err != nil {
+			return resp, nil
+		}
+		return resp, respBody
 	}
 
 	return resp, nil

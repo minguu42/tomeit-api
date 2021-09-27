@@ -139,16 +139,16 @@ func getTasks(db dbInterface) http.HandlerFunc {
 
 		isCompletedStr := r.URL.Query().Get("isCompleted")
 		if isCompletedStr == "true" {
-			options.existIsCompleted = true
+			options.isCompletedExists = true
 			options.isCompleted = true
 		} else if isCompletedStr == "false" {
-			options.existIsCompleted = false
+			options.isCompletedExists = false
 			options.isCompleted = false
 		}
 
 		completedOnStr := r.URL.Query().Get("completedOn")
 		if completedOn, err := time.Parse(time.RFC3339, completedOnStr); err == nil {
-			options.existCompletedOn = true
+			options.completedOnExists = true
 			options.completedOn = completedOn
 		}
 

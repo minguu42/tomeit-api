@@ -35,20 +35,20 @@ func (db *DB) getTaskByID(id int) (*Task, error) {
 }
 
 type getTasksOptions struct {
-	existIsCompleted bool
-	isCompleted      bool
-	existCompletedOn bool
-	completedOn      time.Time
+	isCompletedExists bool
+	isCompleted       bool
+	completedOnExists bool
+	completedOn       time.Time
 }
 
 func (db *DB) getTasksByUser(user *User, options *getTasksOptions) ([]Task, error) {
 	q := db.Where("user_id = ?", user.ID)
 
 	if options != nil {
-		if options.existIsCompleted {
+		if options.isCompletedExists {
 			q = q.Where("is_completed = ?", options.isCompleted)
 		}
-		if options.existCompletedOn {
+		if options.completedOnExists {
 			y, m, d := options.completedOn.Date()
 			start := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 			end := time.Date(y, m, d, 23, 59, 59, 0, time.UTC)

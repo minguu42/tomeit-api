@@ -132,7 +132,7 @@ func getPomodoros(db dbInterface) http.HandlerFunc {
 		completedOnStr := r.URL.Query().Get("completedOn")
 		completedOn, err := time.Parse(time.RFC3339, completedOnStr)
 		if err == nil {
-			options.existCompletedOn = true
+			options.completedOnExists = true
 			options.completedOn = completedOn
 		}
 

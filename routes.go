@@ -15,6 +15,6 @@ func Route(r chi.Router, db dbInterface) {
 		r.Get("/", getPomodoros(db))
 		r.Delete("/{pomodoroID}", deletePomodoro(db))
 
-		//r.Get("/rest-count", tomeit.GetRestCount)
+		r.Get("/rest-count", getRestCount)
 	})
 }

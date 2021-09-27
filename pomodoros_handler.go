@@ -153,21 +153,20 @@ func getPomodoros(db dbInterface) http.HandlerFunc {
 	}
 }
 
-//
-//type restCountResponse struct {
-//	RestCount int `json:"restCount"`
-//}
-//
-//func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
-//	return nil
-//}
-//
-//func GetRestCount(w http.ResponseWriter, r *http.Request) {
-//	user := r.Context().Value(userKey).(*user)
-//
-//	if err := render.Render(w, r, &restCountResponse{RestCount: user.restCount}); err != nil {
-//		log.Println("render.Render failed:", err)
-//		_ = render.Render(w, r, internalServerError(err))
-//		return
-//	}
-//}
+type restCountResponse struct {
+	RestCount int `json:"restCount"`
+}
+
+func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func getRestCount(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(userKey).(*User)
+
+	if err := render.Render(w, r, &restCountResponse{RestCount: user.RestCount}); err != nil {
+		log.Println("render.Render failed:", err)
+		_ = render.Render(w, r, internalServerError(err))
+		return
+	}
+}

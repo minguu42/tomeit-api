@@ -4,7 +4,10 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
+
+	"github.com/go-chi/chi/v5"
 
 	"github.com/go-chi/render"
 )
@@ -75,6 +78,35 @@ func postPomodoros(db dbInterface) http.HandlerFunc {
 			_ = render.Render(w, r, internalServerError(err))
 			return
 		}
+	}
+}
+
+func deletePomodoro(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		pomodoroID, err := strconv.ParseInt(chi.URLParam(r, "pomodoroID"), 10, 64)
+		if err != nil {
+			log.Println("strconv.ParseInt failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+
+		user := r.Context().Value(userKey).(*User)
+
+		pomodoro, err := db.getPomodoroByID(int(pomodoroID))
+		if err != nil {
+			log.Println("db.getPomodoroByID failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+		if user.ID != pomodoro.UserID {
+			log.Println("user.ID != pomodoro.UserID")
+			_ = render.Render(w, r, AuthorizationError(errors.New("you do not have this pomodoro")))
+			return
+		}
+
+		db.deletePomodoro(pomodoro)
+
+		w.WriteHeader(204)
 	}
 }
 

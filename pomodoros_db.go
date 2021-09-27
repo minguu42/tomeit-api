@@ -76,3 +76,7 @@ LIMIT 30
 
 	return pomodoros, nil
 }
+
+func (db *DB) deletePomodoro(pomodoro *Pomodoro) {
+	db.Delete(pomodoro)
+}

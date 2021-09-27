@@ -14,6 +14,14 @@ type User struct {
 	UpdatedAt time.Time
 }
 
+func (u User) hasTask(t *Task) bool {
+	if u.ID == t.UserID {
+		return true
+	} else {
+		return false
+	}
+}
+
 func hash(token string) string {
 	bytes := sha256.Sum256([]byte(token))
 	digestToken := hex.EncodeToString(bytes[:])

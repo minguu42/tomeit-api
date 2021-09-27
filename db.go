@@ -23,6 +23,7 @@ type dbInterface interface {
 	createPomodoro(userID, taskID int) (int, error)
 	getPomodoroByID(id int) (*Pomodoro, error)
 	getPomodorosByUser(user *User, options *getPomodorosOptions) ([]Pomodoro, error)
+	deletePomodoro(pomodoro *Pomodoro)
 }
 
 type DB struct {

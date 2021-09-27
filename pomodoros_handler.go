@@ -4,7 +4,10 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
+
+	"github.com/go-chi/chi/v5"
 
 	"github.com/go-chi/render"
 )
@@ -78,6 +81,35 @@ func postPomodoros(db dbInterface) http.HandlerFunc {
 	}
 }
 
+func deletePomodoro(db dbInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		pomodoroID, err := strconv.ParseInt(chi.URLParam(r, "pomodoroID"), 10, 64)
+		if err != nil {
+			log.Println("strconv.ParseInt failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+
+		user := r.Context().Value(userKey).(*User)
+
+		pomodoro, err := db.getPomodoroByID(int(pomodoroID))
+		if err != nil {
+			log.Println("db.getPomodoroByID failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
+		if user.ID != pomodoro.UserID {
+			log.Println("user.ID != pomodoro.UserID")
+			_ = render.Render(w, r, AuthorizationError(errors.New("you do not have this pomodoro")))
+			return
+		}
+
+		db.deletePomodoro(pomodoro)
+
+		w.WriteHeader(204)
+	}
+}
+
 type pomodorosResponse struct {
 	Pomodoros []*pomodoroResponse `json:"pomodoros"`
 }
@@ -100,7 +132,7 @@ func getPomodoros(db dbInterface) http.HandlerFunc {
 		completedOnStr := r.URL.Query().Get("completedOn")
 		completedOn, err := time.Parse(time.RFC3339, completedOnStr)
 		if err == nil {
-			options.existCompletedOn = true
+			options.completedOnExists = true
 			options.completedOn = completedOn
 		}
 
@@ -121,21 +153,20 @@ func getPomodoros(db dbInterface) http.HandlerFunc {
 	}
 }
 
-//
-//type restCountResponse struct {
-//	RestCount int `json:"restCount"`
-//}
-//
-//func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
-//	return nil
-//}
-//
-//func GetRestCount(w http.ResponseWriter, r *http.Request) {
-//	user := r.Context().Value(userKey).(*user)
-//
-//	if err := render.Render(w, r, &restCountResponse{RestCount: user.restCount}); err != nil {
-//		log.Println("render.Render failed:", err)
-//		_ = render.Render(w, r, internalServerError(err))
-//		return
-//	}
-//}
+type restCountResponse struct {
+	RestCount int `json:"restCount"`
+}
+
+func (c *restCountResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func getRestCount(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(userKey).(*User)
+
+	if err := render.Render(w, r, &restCountResponse{RestCount: user.RestCount}); err != nil {
+		log.Println("render.Render failed:", err)
+		_ = render.Render(w, r, internalServerError(err))
+		return
+	}
+}

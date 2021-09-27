@@ -19,15 +19,9 @@ func (db *DB) createPomodoro(userID, taskID int) (int, error) {
 func (db *DB) getPomodoroByID(id int) (*Pomodoro, error) {
 	var pomodoro Pomodoro
 
-	if err := db.First(&pomodoro, id).Error; err != nil {
+	if err := db.Joins("Task").First(&pomodoro, id).Error; err != nil {
 		return nil, fmt.Errorf("db.First failed: %w", err)
 	}
-
-	var t Task
-	if err := db.First(&t, pomodoro.TaskID).Error; err != nil {
-		return nil, fmt.Errorf("db.First failed: %w", err)
-	}
-	pomodoro.Task = t
 
 	return &pomodoro, nil
 }

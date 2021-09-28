@@ -104,7 +104,11 @@ func deletePomodoro(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		db.deletePomodoro(pomodoro)
+		if err := db.deletePomodoro(pomodoro); err != nil {
+			log.Println("db.deletePomodoro failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
 
 		w.WriteHeader(204)
 	}

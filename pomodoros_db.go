@@ -9,7 +9,7 @@ type pomodoroDBInterface interface {
 	createPomodoro(userID, taskID int) (int, error)
 	getPomodoroByID(id int) (*Pomodoro, error)
 	getPomodorosByUser(user *User, options *getPomodorosOptions) ([]Pomodoro, error)
-	deletePomodoro(pomodoro *Pomodoro)
+	deletePomodoro(pomodoro *Pomodoro) error
 }
 
 func (db *DB) createPomodoro(userID, taskID int) (int, error) {
@@ -57,6 +57,10 @@ func (db *DB) getPomodorosByUser(user *User, options *getPomodorosOptions) ([]Po
 	return pomodoros, nil
 }
 
-func (db *DB) deletePomodoro(pomodoro *Pomodoro) {
-	db.Delete(pomodoro)
+func (db *DB) deletePomodoro(pomodoro *Pomodoro) error {
+	if err := db.Delete(pomodoro).Error; err != nil {
+		return fmt.Errorf("db.Delete failed: %w", err)
+	}
+
+	return nil
 }

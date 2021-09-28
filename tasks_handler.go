@@ -93,16 +93,9 @@ func postTasks(db dbInterface) http.HandlerFunc {
 
 		user := r.Context().Value(userKey).(*User)
 
-		taskID, err := db.createTask(user.ID, reqBody.Title, reqBody.ExpectedPomodoroNum, dueAt)
+		task, err := db.createTask(user.ID, reqBody.Title, reqBody.ExpectedPomodoroNum, dueAt)
 		if err != nil {
 			log.Println("db.createTask failed:", err)
-			_ = render.Render(w, r, badRequestError(err))
-			return
-		}
-
-		task, err := db.getTaskByID(taskID)
-		if err != nil {
-			log.Println("db.getTaskByID failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
 			return
 		}

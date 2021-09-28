@@ -6,7 +6,7 @@ import (
 )
 
 type taskDBInterface interface {
-	createTask(userID int, title string, priority int, dueAt time.Time) (int, error)
+	createTask(userID int, title string, priority int, dueAt time.Time) (*Task, error)
 	getTaskByID(id int) (*Task, error)
 	getTasksByUser(user *User, options *getTasksOptions) ([]Task, error)
 	getActualPomodoroNumByID(id int) (int, error)
@@ -14,12 +14,17 @@ type taskDBInterface interface {
 	deleteTask(task *Task)
 }
 
-func (db *DB) createTask(userID int, title string, expectedPomodoroNum int, dueAt time.Time) (int, error) {
+func (db *DB) createTask(userID int, title string, expectedPomodoroNum int, dueAt time.Time) (*Task, error) {
+	now := time.Now()
 	task := Task{
 		UserID:              userID,
 		Title:               title,
 		ExpectedPomodoroNum: expectedPomodoroNum,
 		DueAt:               &dueAt,
+		IsCompleted:         false,
+		CompletedAt:         nil,
+		CreatedAt:           now,
+		UpdatedAt:           now,
 	}
 
 	q := db.DB
@@ -28,9 +33,9 @@ func (db *DB) createTask(userID int, title string, expectedPomodoroNum int, dueA
 	}
 
 	if err := q.Create(&task).Error; err != nil {
-		return 0, fmt.Errorf("db.Create failed: %w", err)
+		return nil, fmt.Errorf("db.Create failed: %w", err)
 	}
-	return task.ID, nil
+	return &task, nil
 }
 
 func (db *DB) getTaskByID(id int) (*Task, error) {

@@ -6,7 +6,7 @@ import (
 )
 
 type taskDBInterface interface {
-	createTask(userID int, title string, priority int, dueAt time.Time) (*Task, error)
+	createTask(userID int, title string, priority int, dueOn time.Time) (*Task, error)
 	getTaskByID(id int) (*Task, error)
 	getTasksByUser(user *User, options *getTasksOptions) ([]Task, error)
 	getActualPomodoroNumByID(id int) (int, error)
@@ -14,22 +14,22 @@ type taskDBInterface interface {
 	deleteTask(task *Task) error
 }
 
-func (db *DB) createTask(userID int, title string, expectedPomodoroNum int, dueAt time.Time) (*Task, error) {
+func (db *DB) createTask(userID int, title string, expectedPomodoroNum int, dueOn time.Time) (*Task, error) {
 	now := time.Now()
 	task := Task{
 		UserID:              userID,
 		Title:               title,
 		ExpectedPomodoroNum: expectedPomodoroNum,
-		DueAt:               &dueAt,
+		DueOn:               &dueOn,
 		IsCompleted:         false,
-		CompletedAt:         nil,
+		CompletedOn:         nil,
 		CreatedAt:           now,
 		UpdatedAt:           now,
 	}
 
 	q := db.DB
-	if dueAt.IsZero() {
-		q = q.Omit("DueAt")
+	if dueOn.IsZero() {
+		q = q.Omit("DueOn")
 	}
 
 	if err := q.Create(&task).Error; err != nil {
@@ -66,7 +66,7 @@ func (db *DB) getTasksByUser(user *User, options *getTasksOptions) ([]Task, erro
 			y, m, d := options.completedOn.Date()
 			start := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 			end := time.Date(y, m, d, 23, 59, 59, 0, time.UTC)
-			q = q.Where("completed_at BETWEEN ? AND ?", start, end)
+			q = q.Where("completed_on BETWEEN ? AND ?", start, end)
 		}
 	}
 

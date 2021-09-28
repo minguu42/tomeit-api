@@ -54,8 +54,8 @@ func TestPostTasks(t *testing.T) {
 }
 
 func setupTestTasks() {
-	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, due_at, is_completed) VALUES (1, 'タスク1', 0, '2021-01-01', false)`
-	const createTask2 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, due_at, is_completed, completed_at) VALUES (1, 'タスク2', 2, '2021-12-31', true, '2021-08-31 12:30:00')`
+	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, due_on, is_completed) VALUES (1, 'タスク1', 0, '2021-01-01', false)`
+	const createTask2 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, due_on, is_completed, completed_on) VALUES (1, 'タスク2', 2, '2021-12-31', true, '2021-08-31 12:30:00')`
 
 	testDB.Exec(createTask1)
 	testDB.Exec(createTask2)

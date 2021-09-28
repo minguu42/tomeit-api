@@ -32,13 +32,13 @@ func newTaskResponse(t *Task, db dbInterface) *taskResponse {
 	}
 
 	var dueOn string
-	if t.DueAt != nil {
-		dueOn = t.DueAt.Format(time.RFC3339)
+	if t.DueOn != nil {
+		dueOn = t.DueOn.Format(time.RFC3339)
 	}
 
 	var completedOn string
-	if t.CompletedAt != nil {
-		completedOn = t.CompletedAt.Format(time.RFC3339)
+	if t.CompletedOn != nil {
+		completedOn = t.CompletedOn.Format(time.RFC3339)
 	}
 
 	r := taskResponse{

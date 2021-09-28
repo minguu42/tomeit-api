@@ -15,9 +15,9 @@ CREATE TABLE IF NOT EXISTS tasks (
     user_id                  INT          NOT NULL,
     title                    VARCHAR(120) NOT NULL,
     expected_pomodoro_num    INT          DEFAULT 0 NOT NULL CHECK (0 <= expected_pomodoro_num AND expected_pomodoro_num <= 6),
-    due_at                   TIMESTAMP,
+    due_on                   TIMESTAMP,
     is_completed             BOOLEAN      DEFAULT FALSE NOT NULL,
-    completed_at             TIMESTAMP,
+    completed_on             TIMESTAMP,
     created_at               TIMESTAMP    DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at               TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
@@ -27,7 +27,6 @@ CREATE TABLE IF NOT EXISTS pomodoros (
     id           INT       PRIMARY KEY AUTO_INCREMENT,
     user_id      INT       NOT NULL,
     task_id      INT       NOT NULL,
-    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (task_id) REFERENCES tasks(id)

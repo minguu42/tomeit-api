@@ -32,13 +32,13 @@ func newTaskResponse(t *Task, db dbInterface) *taskResponse {
 	}
 
 	var dueOn string
-	if t.DueAt != nil {
-		dueOn = t.DueAt.Format(time.RFC3339)
+	if t.DueOn != nil {
+		dueOn = t.DueOn.Format(time.RFC3339)
 	}
 
 	var completedOn string
-	if t.CompletedAt != nil {
-		completedOn = t.CompletedAt.Format(time.RFC3339)
+	if t.CompletedOn != nil {
+		completedOn = t.CompletedOn.Format(time.RFC3339)
 	}
 
 	r := taskResponse{
@@ -93,16 +93,9 @@ func postTasks(db dbInterface) http.HandlerFunc {
 
 		user := r.Context().Value(userKey).(*User)
 
-		taskID, err := db.createTask(user.ID, reqBody.Title, reqBody.ExpectedPomodoroNum, dueAt)
+		task, err := db.createTask(user.ID, reqBody.Title, reqBody.ExpectedPomodoroNum, dueAt)
 		if err != nil {
 			log.Println("db.createTask failed:", err)
-			_ = render.Render(w, r, badRequestError(err))
-			return
-		}
-
-		task, err := db.getTaskByID(taskID)
-		if err != nil {
-			log.Println("db.getTaskByID failed:", err)
 			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
@@ -211,7 +204,11 @@ func patchTask(db dbInterface) http.HandlerFunc {
 
 		task.IsCompleted, _ = strconv.ParseBool(data.IsCompleted)
 
-		db.updateTask(task)
+		if err := db.updateTask(task); err != nil {
+			log.Println("db.updateTask failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
 
 		task, err = db.getTaskByID(task.ID)
 		if err != nil {
@@ -252,7 +249,11 @@ func deleteTask(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		db.deleteTask(task)
+		if err := db.deleteTask(task); err != nil {
+			log.Println("db.deleteTask failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
 
 		w.WriteHeader(204)
 	}

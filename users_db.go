@@ -1,11 +1,8 @@
 package tomeit
 
 import (
-	"errors"
 	"fmt"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type userDBInterface interface {
@@ -23,10 +20,8 @@ func (db *DB) createUser(digestUID string) (*User, error) {
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
 	}
-
-	r := db.Create(&user)
-	if r.Error != nil {
-		return nil, fmt.Errorf("db.Create failed: %w", r.Error)
+	if err := db.Create(&user).Error; err != nil {
+		return nil, fmt.Errorf("db.Create failed: %w", err)
 	}
 
 	return &user, nil
@@ -35,9 +30,8 @@ func (db *DB) createUser(digestUID string) (*User, error) {
 func (db *DB) getUserByDigestUID(digestUID string) (*User, error) {
 	var user User
 
-	r := db.Where("digest_uid", digestUID).First(&user)
-	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
-		return nil, fmt.Errorf("record not found")
+	if err := db.Where("digest_uid", digestUID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("db.First failed: %w", err)
 	}
 
 	return &user, nil

@@ -22,6 +22,14 @@ func (u User) hasTask(t *Task) bool {
 	}
 }
 
+func (u User) hasPomodoro(p *Pomodoro) bool {
+	if u.ID == p.UserID {
+		return true
+	} else {
+		return false
+	}
+}
+
 func hash(token string) string {
 	bytes := sha256.Sum256([]byte(token))
 	digestToken := hex.EncodeToString(bytes[:])

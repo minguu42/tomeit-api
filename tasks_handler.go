@@ -204,7 +204,11 @@ func patchTask(db dbInterface) http.HandlerFunc {
 
 		task.IsCompleted, _ = strconv.ParseBool(data.IsCompleted)
 
-		db.updateTask(task)
+		if err := db.updateTask(task); err != nil {
+			log.Println("db.updateTask failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
 
 		task, err = db.getTaskByID(task.ID)
 		if err != nil {
@@ -245,7 +249,11 @@ func deleteTask(db dbInterface) http.HandlerFunc {
 			return
 		}
 
-		db.deleteTask(task)
+		if err := db.deleteTask(task); err != nil {
+			log.Println("db.deleteTask failed:", err)
+			_ = render.Render(w, r, badRequestError(err))
+			return
+		}
 
 		w.WriteHeader(204)
 	}

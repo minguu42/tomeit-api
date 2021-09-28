@@ -10,8 +10,8 @@ type taskDBInterface interface {
 	getTaskByID(id int) (*Task, error)
 	getTasksByUser(user *User, options *getTasksOptions) ([]Task, error)
 	getActualPomodoroNumByID(id int) (int, error)
-	updateTask(task *Task)
-	deleteTask(task *Task)
+	updateTask(task *Task) error
+	deleteTask(task *Task) error
 }
 
 func (db *DB) createTask(userID int, title string, expectedPomodoroNum int, dueAt time.Time) (*Task, error) {
@@ -89,10 +89,18 @@ func (db *DB) getActualPomodoroNumByID(id int) (int, error) {
 	return int(c), nil
 }
 
-func (db *DB) updateTask(task *Task) {
-	db.Save(task)
+func (db *DB) updateTask(task *Task) error {
+	if err := db.Save(task).Error; err != nil {
+		return fmt.Errorf("db.Save() failed: %w", err)
+	}
+
+	return nil
 }
 
-func (db *DB) deleteTask(task *Task) {
-	db.Delete(task)
+func (db *DB) deleteTask(task *Task) error {
+	if err := db.Delete(task).Error; err != nil {
+		return fmt.Errorf("db.Delete failed: %w", err)
+	}
+
+	return nil
 }

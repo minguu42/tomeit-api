@@ -33,6 +33,11 @@ check: ## fmt, lint, test を実行し, 適切な状態か確認する
 	@make lint
 	@make test
 
+.PHONY: cover
+cover: ## テストカバレッジを測定する
+	@go test -coverprofile=coverage.out
+	@go tool cover -func=coverage.out
+
 .PHONY: bench
 bench: ## ハンドラ関数のベンチマークを実行する
 	@go test -bench .

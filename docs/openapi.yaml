@@ -256,11 +256,11 @@ components:
           minimum: 1
           example: 1
         title:
-          description: タスクのタイトル
+          description: タイトル
           type: string
           example: タスク1
         notes:
-          description: タスクについてのメモ
+          description: メモ
           type: string
           example: タスク1のメモ
         expectedPomodoroNum:
@@ -273,7 +273,7 @@ components:
           example: 2
         dueOn:
           description: |
-            タスクの期限日付
+            期限日付
 
             オプション. 存在しない場合は ""（空の文字列）を返す.
           type: string
@@ -283,17 +283,17 @@ components:
           type: boolean
         completedOn:
           description: |
-            タスクを完了した日付
+            完了した日付
 
             タスクが完了済みでない場合は ""（空の文字列）を返す.
           type: string
           example: "2021-01-01T00:00:00Z"
         createdAt:
-          description: タスクを作成した時刻
+          description: タスクを作成した日時
           type: string
           example: "2021-01-01T00:00:00Z"
         updatedAt:
-          description: タスクを更新した時刻
+          description: タスクを更新した日時
           type: string
           example: "2021-01-01T00:00:00Z"
     Tasks:
@@ -311,7 +311,7 @@ components:
       required:
         - id
         - task
-        - completedAt
+        - createdAt
       properties:
         id:
           description: ポモドーロ記録 ID
@@ -321,7 +321,7 @@ components:
         task:
           $ref: "#/components/schemas/Task"
         createdAt:
-          description: ポモドーロ記録を作成した時刻
+          description: ポモドーロ記録を作成した日時
           type: string
           example: "2021-01-01T00:00:00Z"
     Pomodoros:
@@ -392,7 +392,7 @@ components:
     pomodoroId:
       name: pomodoroId
       in: path
-      description: 任意のタスク ID
+      description: 任意のポモドーロ ID
       required: true
       schema:
         type: integer

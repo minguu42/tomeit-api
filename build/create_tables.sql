@@ -27,7 +27,6 @@ CREATE TABLE IF NOT EXISTS pomodoros (
     id           INT       PRIMARY KEY AUTO_INCREMENT,
     user_id      INT       NOT NULL,
     task_id      INT       NOT NULL,
-    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (task_id) REFERENCES tasks(id)

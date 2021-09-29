@@ -3,7 +3,7 @@ openapi: 3.0.3
 info:
   title: tomeit API
   description: tomeit の REST API の仕様書である.
-  version: 0.3.1
+  version: 0.3.2
 
 servers:
   - url: http://localhost:8080/v0
@@ -21,7 +21,6 @@ paths:
       tags:
         - tasks
       summary: タスク作成 API
-      description: タスクを作成する
       parameters:
         - $ref: "#/components/parameters/idToken"
       requestBody:
@@ -43,8 +42,13 @@ paths:
                   type: string
                   example: "2021-12-31T00:00:00Z"
       responses:
-        "200":
+        "201":
           description: 成功
+          headers:
+            Location:
+              schema:
+                type: string
+                example: https://api.tomeit.com/v0/tasks/1
           content:
             application/json:
               schema:
@@ -57,14 +61,11 @@ paths:
       tags:
         - tasks
       summary: タスク一覧取得 API
-      description: |
-        タスクを一覧で取得する
-
-        作成順で最大30件まで取得する.
+      description: 作成日時の昇順で最大30件まで取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
         - name: isCompleted
-          description: タスクが完了済みかどうかで絞り込みを行う. 省略可能.
+          description: タスクが完了したかどうかで絞り込みを行う. 省略可能.
           in: "query"
           schema:
             type: string
@@ -86,18 +87,15 @@ paths:
           $ref: "#/components/responses/BadRequestError"
         "401":
           $ref: "#/components/responses/AuthenticationError"
-  /tasks/{id}:
+  /tasks/{taskID}:
     patch:
       summary: タスク一部更新 API
       tags:
         - tasks
-      description: |
-        タスクの一部情報を更新する
-
-        status の値のみ変更できる.
+      description: 現時点では isCompleted の値のみ変更できる.
       parameters:
         - $ref: "#/components/parameters/idToken"
-        - $ref: "#/components/parameters/taskId"
+        - $ref: "#/components/parameters/taskID"
       requestBody:
         required: true
         content:
@@ -121,14 +119,15 @@ paths:
           $ref: "#/components/responses/AuthenticationError"
         "403":
           $ref: "#/components/responses/AuthorizationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
     delete:
       summary: タスク削除 API
       tags:
         - tasks
-      description: タスクを削除する
       parameters:
         - $ref: "#/components/parameters/idToken"
-        - $ref: "#/components/parameters/taskId"
+        - $ref: "#/components/parameters/taskID"
       responses:
         "204":
           description: 成功
@@ -136,13 +135,13 @@ paths:
           $ref: "#/components/responses/AuthenticationError"
         "403":
           $ref: "#/components/responses/AuthorizationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
   /pomodoros:
     post:
-      summary: ポモドーロ記録 API
+      summary: ポモドーロ記録作成 API
       tags:
         - pomodoros
-      description: |
-        実行したポモドーロを記録する
       parameters:
         - $ref: "#/components/parameters/idToken"
       requestBody:
@@ -152,14 +151,19 @@ paths:
             schema:
               type: object
               required:
-                - taskId
+                - taskID
               properties:
-                taskId:
+                taskID:
                   type: integer
                   example: 1
       responses:
-        "200":
+        "201":
           description: 成功
+          headers:
+            Location:
+              schema:
+                type: string
+                example: https://api.tomeit.com/v0/pomodoros/1
           content:
             application/json:
               schema:
@@ -172,10 +176,7 @@ paths:
       summary: ポモドーロ記録一覧取得 API
       tags:
         - pomodoros
-      description: |
-        ポモドーロ記録を一覧で取得する
-
-        作成順で最大30件まで取得する.
+      description: 作成日時の昇順で最大30件まで取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
         - name: completedOn
@@ -195,15 +196,14 @@ paths:
           $ref: "#/components/responses/BadRequestError"
         "401":
           $ref: "#/components/responses/AuthenticationError"
-  /pomodoros/{pomodoroId}:
+  /pomodoros/{pomodoroID}:
     delete:
       summary: ポモドーロ記録削除 API
       tags:
         - pomodoros
-      description: ポモドーロ記録を削除する
       parameters:
         - $ref: "#/components/parameters/idToken"
-        - $ref: "#/components/parameters/pomodoroId"
+        - $ref: "#/components/parameters/pomodoroID"
       responses:
         "204":
           description: 成功
@@ -211,13 +211,13 @@ paths:
           $ref: "#/components/responses/AuthenticationError"
         "403":
           $ref: "#/components/responses/AuthorizationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
   /pomodoros/rest-count:
     get:
       summary: 次の長い休憩までのカウント取得 API
       tags:
         - pomodoros
-      description: |
-        次の長い休憩までのカウントを取得する
       parameters:
         - $ref: "#/components/parameters/idToken"
       responses:
@@ -277,7 +277,7 @@ components:
           type: string
           example: "2021-01-01T00:00:00Z"
         isCompleted:
-          description: タスクを完了したかどうか
+          description: 完了したかどうか
           type: boolean
         completedOn:
           description: |
@@ -287,11 +287,11 @@ components:
           type: string
           example: "2021-01-01T00:00:00Z"
         createdAt:
-          description: タスクを作成した日時
+          description: 作成日時
           type: string
           example: "2021-01-01T00:00:00Z"
         updatedAt:
-          description: タスクを更新した日時
+          description: 更新日時
           type: string
           example: "2021-01-01T00:00:00Z"
     Tasks:
@@ -319,7 +319,7 @@ components:
         task:
           $ref: "#/components/schemas/Task"
         createdAt:
-          description: ポモドーロ記録を作成した日時
+          description: 作成日時
           type: string
           example: "2021-01-01T00:00:00Z"
     Pomodoros:

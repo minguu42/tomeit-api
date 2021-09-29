@@ -19,8 +19,12 @@ func TestPostTasks(t *testing.T) {
 }
 `)
 		resp, body := doTestRequest(t, "POST", "/tasks", nil, reqBody, "taskResponse")
-		if resp.StatusCode != 200 {
-			t.Error("Status code should be 200, but", resp.StatusCode)
+
+		checkStatusCode(t, resp, 201)
+
+		l := resp.Header.Get("Location")
+		if l != testUrl+"/tasks/1" {
+			t.Errorf("Location should be %v, but %v", testUrl+"/v0/tasks/1", l)
 		}
 
 		got, ok := body.(taskResponse)
@@ -36,7 +40,6 @@ func TestPostTasks(t *testing.T) {
 			DueOn:               "2021-01-01T00:00:00Z",
 			IsCompleted:         false,
 		}
-
 		if diff := cmp.Diff(got, want, taskResponseCmpOpts); diff != "" {
 			t.Errorf("taskResponse mismatch (-got +want):\n%s", diff)
 		}

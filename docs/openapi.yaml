@@ -3,7 +3,7 @@ openapi: 3.0.3
 info:
   title: tomeit API
   description: tomeit の REST API の仕様書である.
-  version: 0.3.0
+  version: 0.3.1
 
 servers:
   - url: http://localhost:8080/v0
@@ -86,7 +86,7 @@ paths:
           $ref: "#/components/responses/BadRequestError"
         "401":
           $ref: "#/components/responses/AuthenticationError"
-  /tasks/{taskId}:
+  /tasks/{id}:
     patch:
       summary: タスク一部更新 API
       tags:
@@ -241,7 +241,6 @@ components:
       required:
         - id
         - title
-        - notes
         - expectedPomodoroNum
         - actualPomodoroNum
         - dueOn
@@ -259,23 +258,22 @@ components:
           description: タイトル
           type: string
           example: タスク1
-        notes:
-          description: メモ
-          type: string
-          example: タスク1のメモ
         expectedPomodoroNum:
           description: 予測ポモドーロ数
           type: integer
+          minimum: 0
+          maximum: 6
           example: 4
         actualPomodoroNum:
           description: 完了したポモドーロ数
           type: integer
+          minimum: 0
           example: 2
         dueOn:
           description: |
             期限日付
 
-            オプション. 存在しない場合は ""（空の文字列）を返す.
+            省略可. 存在しない場合は ""（空の文字列）を返す.
           type: string
           example: "2021-01-01T00:00:00Z"
         isCompleted:
@@ -334,45 +332,97 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Pomodoro"
-    Error:
-      type: object
-      required:
-        - status
-        - error
-      properties:
-        status:
-          description: レスポンスの説明
-          type: string
-          example: some response message
-        error:
-          description: エラーの説明
-          type: string
-          example: some error message
   responses:
     BadRequestError:
       description: リクエストが間違っている
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            type: object
+            required:
+              - status
+              - error
+            properties:
+              status:
+                description: ユーザ向けの大まかなエラーの説明
+                type: string
+                example: リクエストに何らかの間違いがあります。
+              error:
+                description: 開発者向けの具体的なエラーの説明
+                type: string
+                example: some error messages
     AuthenticationError:
-      description: ユーザを認証できない
+      description: 認証が必要である
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            type: object
+            required:
+              - status
+              - error
+            properties:
+              status:
+                description: ユーザ向けの大まかなエラーの説明
+                type: string
+                example: ログインする必要があります。
+              error:
+                description: 開発者向けの具体的なエラーの説明
+                type: string
+                example: some error messages
     AuthorizationError:
       description: リソースへのアクセス権限がない
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
-    InternalServerError:
-      description: サーバ側で不明なエラーが発生した
+            type: object
+            required:
+              - status
+              - error
+            properties:
+              status:
+                description: ユーザ向けの大まかなエラーの説明
+                type: string
+                example: 指定されたリソースに対してアクセス権限がありません。
+              error:
+                description: 開発者向けの具体的なエラーの説明
+                type: string
+                example: some error messages
+    NotFoundError:
+      description: リソースが存在しない
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            type: object
+            required:
+              - status
+              - error
+            properties:
+              status:
+                description: ユーザ向けの大まかなエラーの説明
+                type: string
+                example: 指定されたリソースが存在しません。
+              error:
+                description: 開発者向けの具体的なエラーの説明
+                type: string
+                example: some error messages
+    InternalServerError:
+      description: サーバ側で何らかのエラーが発生した
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - status
+              - error
+            properties:
+              status:
+                description: ユーザ向けの大まかなエラーの説明
+                type: string
+                example: サーバ側で何らかのエラーが発生しました。
+              error:
+                description: 開発者向けの具体的なエラーの説明
+                type: string
+                example: some error messages
   parameters:
     idToken:
       name: Authorization
@@ -381,18 +431,18 @@ components:
       required: true
       schema:
         type: string
-    taskId:
-      name: taskId
+    taskID:
+      name: taskID
       in: path
-      description: 任意のタスク ID
+      description: 一意のタスクを特定するタスク ID
       required: true
       schema:
         type: integer
         minimum: 1
-    pomodoroId:
-      name: pomodoroId
+    pomodoroID:
+      name: pomodoroID
       in: path
-      description: 任意のポモドーロ ID
+      description: 一意のポモドーロ記録を特定するポモドーロ記録 ID
       required: true
       schema:
         type: integer

@@ -56,11 +56,12 @@ func TestPostTasks(t *testing.T) {
 }
 
 func setupTestTasks() {
-	const createTask1 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, due_on, is_completed) VALUES (1, 'タスク1', 0, '2021-01-01', false)`
-	const createTask2 = `INSERT INTO tasks (user_id, title, expected_pomodoro_num, due_on, is_completed, completed_on) VALUES (1, 'タスク2', 2, '2021-12-31', true, '2021-08-31 12:30:00')`
-
-	testDB.Exec(createTask1)
-	testDB.Exec(createTask2)
+	const createTasks = `
+INSERT INTO tasks (id, user_id, title, expected_pomodoro_num, due_on, is_completed, completed_on, created_at, updated_at) VALUES 
+(1, 1, 'タスク1', 0, '2021-01-01 00:00:00', false, NULL, '2021-01-01 00:00:00', '2021-01-01 00:00:00'),
+(2, 1, 'タスク2', 2, '2021-12-31 00:00:00', true, '2021-08-31 12:34:56', '2021-01-01 00:00:00', '2021-08-31 12:34:56')
+`
+	testDB.Exec(createTasks)
 }
 
 func TestGetTasks(t *testing.T) {
@@ -69,9 +70,8 @@ func TestGetTasks(t *testing.T) {
 	t.Cleanup(teardownTestDB)
 	t.Run("タスク一覧を取得する", func(t *testing.T) {
 		resp, body := doTestRequest(t, "GET", "/tasks", nil, nil, "tasksResponse")
-		if resp.StatusCode != 200 {
-			t.Error("Status code should be 200, but", resp.StatusCode)
-		}
+
+		checkStatusCode(t, resp, 200)
 
 		got, ok := body.(tasksResponse)
 		if !ok {
@@ -87,6 +87,9 @@ func TestGetTasks(t *testing.T) {
 					ActualPomodoroNum:   0,
 					DueOn:               "2021-01-01T00:00:00Z",
 					IsCompleted:         false,
+					CompletedOn:         "",
+					CreatedAt:           "2021-01-01T00:00:00Z",
+					UpdatedAt:           "2021-01-01T00:00:00Z",
 				},
 				{
 					ID:                  2,
@@ -95,14 +98,13 @@ func TestGetTasks(t *testing.T) {
 					ActualPomodoroNum:   0,
 					DueOn:               "2021-12-31T00:00:00Z",
 					IsCompleted:         true,
+					CompletedOn:         "2021-08-31T12:34:56Z",
+					CreatedAt:           "2021-01-01T00:00:00Z",
+					UpdatedAt:           "2021-08-31T12:34:56Z",
 				},
 			},
 		}
-
-		if diff := cmp.Diff(got.Tasks[0], want.Tasks[0], taskResponseCmpOpts); diff != "" {
-			t.Errorf("tasksResponse mismatch (-got +want):\n%s", diff)
-		}
-		if diff := cmp.Diff(got.Tasks[1], want.Tasks[1], taskResponseCmpOpts); diff != "" {
+		if diff := cmp.Diff(got, want); diff != "" {
 			t.Errorf("tasksResponse mismatch (-got +want):\n%s", diff)
 		}
 	})
@@ -112,9 +114,7 @@ func TestGetTasks(t *testing.T) {
 		}
 		resp, body := doTestRequest(t, "GET", "/tasks", &params, nil, "tasksResponse")
 
-		if resp.StatusCode != 200 {
-			t.Error("Status code should be 200, but", resp.StatusCode)
-		}
+		checkStatusCode(t, resp, 200)
 
 		got, ok := body.(tasksResponse)
 		if !ok {
@@ -130,11 +130,13 @@ func TestGetTasks(t *testing.T) {
 					ActualPomodoroNum:   0,
 					DueOn:               "2021-12-31T00:00:00Z",
 					IsCompleted:         true,
+					CompletedOn:         "2021-08-31T12:34:56Z",
+					CreatedAt:           "2021-01-01T00:00:00Z",
+					UpdatedAt:           "2021-08-31T12:34:56Z",
 				},
 			},
 		}
-
-		if diff := cmp.Diff(got.Tasks[0], want.Tasks[0], taskResponseCmpOpts); diff != "" {
+		if diff := cmp.Diff(got, want); diff != "" {
 			t.Errorf("tasksResponse mismatch (-got +want):\n%s", diff)
 		}
 	})
@@ -144,9 +146,7 @@ func TestGetTasks(t *testing.T) {
 		}
 		resp, body := doTestRequest(t, "GET", "/tasks", &params, nil, "tasksResponse")
 
-		if resp.StatusCode != 200 {
-			t.Error("Status code should be 200, but", resp.StatusCode)
-		}
+		checkStatusCode(t, resp, 200)
 
 		got, ok := body.(tasksResponse)
 		if !ok {
@@ -162,11 +162,13 @@ func TestGetTasks(t *testing.T) {
 					ActualPomodoroNum:   0,
 					DueOn:               "2021-12-31T00:00:00Z",
 					IsCompleted:         true,
+					CompletedOn:         "2021-08-31T12:34:56Z",
+					CreatedAt:           "2021-01-01T00:00:00Z",
+					UpdatedAt:           "2021-08-31T12:34:56Z",
 				},
 			},
 		}
-
-		if diff := cmp.Diff(got.Tasks[0], want.Tasks[0], taskResponseCmpOpts); diff != "" {
+		if diff := cmp.Diff(got, want); diff != "" {
 			t.Errorf("tasksResponse mismatch (-got +want):\n%s", diff)
 		}
 	})

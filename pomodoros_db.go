@@ -46,7 +46,7 @@ func (db *DB) getPomodorosByUser(user *User, options *getPomodorosOptions) ([]Po
 			y, m, d := options.completedOn.Date()
 			start := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 			end := time.Date(y, m, d, 23, 59, 59, 0, time.UTC)
-			q = q.Where("pomodoros.completed_at BETWEEN ? AND ?", start, end)
+			q = q.Where("pomodoros.created_at BETWEEN ? AND ?", start, end)
 		}
 	}
 

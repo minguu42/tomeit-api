@@ -23,7 +23,7 @@ func badRequestError(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 400,
-		StatusText:     "Request is wrong",
+		StatusText:     "リクエストに何らかの間違いがあります。",
 		ErrorText:      err.Error(),
 	}
 }
@@ -32,7 +32,7 @@ func AuthenticationError(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 401,
-		StatusText:     "User authentication failed",
+		StatusText:     "ログインする必要があります。",
 		ErrorText:      err.Error(),
 	}
 }
@@ -41,7 +41,16 @@ func AuthorizationError(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 403,
-		StatusText:     "You do not have permission to access the resource",
+		StatusText:     "指定されたリソースに対してアクセス権限がありません。",
+		ErrorText:      err.Error(),
+	}
+}
+
+func NotFoundError(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 404,
+		StatusText:     "指定されたリソースが存在しません。",
 		ErrorText:      err.Error(),
 	}
 }
@@ -50,7 +59,7 @@ func internalServerError(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 500,
-		StatusText:     "An unexpected error occurred.",
+		StatusText:     "サーバ側で何らかのエラーが発生しました。",
 		ErrorText:      err.Error(),
 	}
 }

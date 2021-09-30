@@ -15,7 +15,12 @@ func TestPostPomodoros(t *testing.T) {
 		reqBody := strings.NewReader(`{"taskID": 1}`)
 		resp, body := doTestRequest(t, "POST", "/pomodoros", nil, reqBody, "pomodoroResponse")
 
-		checkStatusCode(t, resp, 200)
+		checkStatusCode(t, resp, 201)
+
+		l := resp.Header.Get("Location")
+		if l != testUrl+"/pomodoros/1" {
+			t.Errorf("Location should be %v, but %v", testUrl+"/pomodoros/1", l)
+		}
 
 		got, ok := body.(pomodoroResponse)
 		if !ok {
@@ -34,8 +39,14 @@ func TestPostPomodoros(t *testing.T) {
 			},
 		}
 		if diff := cmp.Diff(got, want, pomodoroResponseCmpOpts); diff != "" {
-			t.Errorf("pomodoroResponse mismatch (-got +want):\n%s", diff)
+			t.Errorf("postPomodoros response mismatch (-got +want):\n%s", diff)
 		}
+	})
+	t.Run("リクエストボディに taskID が含まれていない", func(t *testing.T) {
+		reqBody := strings.NewReader(`{}`)
+		resp, _ := doTestRequest(t, "POST", "/pomodoros", nil, reqBody, "pomodoroResponse")
+
+		checkStatusCode(t, resp, 400)
 	})
 }
 

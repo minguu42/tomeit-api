@@ -73,6 +73,12 @@ func postPomodoros(db dbInterface) http.HandlerFunc {
 			return
 		}
 
+		scheme := "http://"
+		if r.TLS != nil {
+			scheme = "https://"
+		}
+		w.Header().Set("Location", scheme+r.Host+r.URL.Path+"/"+strconv.Itoa(pomodoro.ID))
+		w.WriteHeader(201)
 		if err = render.Render(w, r, newPomodoroResponse(pomodoro, db)); err != nil {
 			log.Println("render.Render failed:", err)
 			_ = render.Render(w, r, internalServerError(err))

@@ -245,7 +245,7 @@ func deleteTask(db dbInterface) http.HandlerFunc {
 		task, err := db.getTaskByID(int(taskID))
 		if err != nil {
 			log.Println("db.getTaskByID failed:", err)
-			_ = render.Render(w, r, badRequestError(err))
+			_ = render.Render(w, r, notFoundError(err))
 			return
 		}
 

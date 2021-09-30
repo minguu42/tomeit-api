@@ -52,11 +52,13 @@ func TestPostPomodoros(t *testing.T) {
 
 func setupTestPomodoros() {
 	setupTestTasks()
-	const createPomodoro1 = `INSERT INTO pomodoros (user_id, task_id, created_at) VALUES (1, 1, '2021-08-31 01:02:03')`
-	const createPomodoro2 = `INSERT INTO pomodoros (user_id, task_id, created_at) VALUES (1, 1, '2021-09-01 06:07:08')`
+	const createPomodoros = `
+INSERT INTO pomodoros (id, user_id, task_id, created_at) VALUES 
+(1, 1, 1, '2021-08-31 01:02:03'),
+(2, 1, 1, '2021-09-01 06:07:08')
+`
 
-	testDB.Exec(createPomodoro1)
-	testDB.Exec(createPomodoro2)
+	testDB.Exec(createPomodoros)
 }
 
 func TestGetPomodoros(t *testing.T) {
@@ -72,6 +74,7 @@ func TestGetPomodoros(t *testing.T) {
 		if !ok {
 			t.Fatal("Type Assertion failed")
 		}
+
 		if len(got.Pomodoros) != 2 {
 			t.Fatal("response has 2 pomodoros")
 		}
@@ -87,6 +90,9 @@ func TestGetPomodoros(t *testing.T) {
 						ActualPomodoroNum:   2,
 						DueOn:               "2021-01-01T00:00:00Z",
 						IsCompleted:         false,
+						CompletedOn:         "",
+						CreatedAt:           "2021-01-01T00:00:00Z",
+						UpdatedAt:           "2021-01-01T00:00:00Z",
 					},
 					CreatedAt: "2021-08-31T01:02:03Z",
 				},
@@ -99,17 +105,52 @@ func TestGetPomodoros(t *testing.T) {
 						ActualPomodoroNum:   2,
 						DueOn:               "2021-01-01T00:00:00Z",
 						IsCompleted:         false,
+						CompletedOn:         "",
+						CreatedAt:           "2021-01-01T00:00:00Z",
+						UpdatedAt:           "2021-01-01T00:00:00Z",
 					},
 					CreatedAt: "2021-09-01T06:07:08Z",
 				},
 			},
 		}
-
-		if diff := cmp.Diff(got.Pomodoros[0], want.Pomodoros[0], pomodoroResponseCmpOpts); diff != "" {
-			t.Errorf("pomodorosResponse mismatch (-got +want):\n%s", diff)
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("getPomodoros response mismatch (-got +want):\n%s", diff)
 		}
-		if diff := cmp.Diff(got.Pomodoros[1], want.Pomodoros[1], pomodoroResponseCmpOpts); diff != "" {
-			t.Errorf("pomodorosResponse mismatch (-got +want):\n%s", diff)
+	})
+	t.Run("ある日付に作成したポモドーロ記録を取得する", func(t *testing.T) {
+		params := map[string]string{
+			"completedOn": "2021-08-31T00:00:00Z",
+		}
+		resp, body := doTestRequest(t, "GET", "/pomodoros", &params, nil, "pomodorosResponse")
+
+		checkStatusCode(t, resp, 200)
+
+		got, ok := body.(pomodorosResponse)
+		if !ok {
+			t.Fatal("Type Assertion failed")
+		}
+
+		want := pomodorosResponse{
+			Pomodoros: []*pomodoroResponse{
+				{
+					ID: 1,
+					Task: &taskResponse{
+						ID:                  1,
+						Title:               "タスク1",
+						ExpectedPomodoroNum: 0,
+						ActualPomodoroNum:   2,
+						DueOn:               "2021-01-01T00:00:00Z",
+						IsCompleted:         false,
+						CompletedOn:         "",
+						CreatedAt:           "2021-01-01T00:00:00Z",
+						UpdatedAt:           "2021-01-01T00:00:00Z",
+					},
+					CreatedAt: "2021-08-31T01:02:03Z",
+				},
+			},
+		}
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("getPomodoros response mismatch (-got +want):\n%s", diff)
 		}
 	})
 }

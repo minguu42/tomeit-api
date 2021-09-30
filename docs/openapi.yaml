@@ -83,8 +83,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tasks"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
         "401":
           $ref: "#/components/responses/AuthenticationError"
   /tasks/{taskID}:

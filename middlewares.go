@@ -24,7 +24,7 @@ func UserCtx(db dbInterface, firebaseApp firebaseAppInterface) Middleware {
 			token, err := firebaseApp.verifyIDToken(ctx, idToken)
 			if err != nil {
 				log.Println("verifyIDToken failed:", err)
-				_ = render.Render(w, r, AuthenticationError(err))
+				_ = render.Render(w, r, authenticationError(err))
 				return
 			}
 

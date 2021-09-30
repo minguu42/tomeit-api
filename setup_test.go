@@ -138,3 +138,9 @@ func doTestRequest(tb testing.TB, method, path string, params *map[string]string
 
 	return resp, nil
 }
+
+func checkStatusCode(tb testing.TB, response *http.Response, want int) {
+	if response.StatusCode != want {
+		tb.Fatalf("Status code should be %v, but %v", want, response.StatusCode)
+	}
+}

@@ -15,9 +15,7 @@ func TestPostPomodoros(t *testing.T) {
 		reqBody := strings.NewReader(`{"taskID": 1}`)
 		resp, body := doTestRequest(t, "POST", "/pomodoros", nil, reqBody, "pomodoroResponse")
 
-		if resp.StatusCode != 200 {
-			t.Error("Status code should be 200, but", resp.StatusCode)
-		}
+		checkStatusCode(t, resp, 200)
 
 		got, ok := body.(pomodoroResponse)
 		if !ok {
@@ -35,7 +33,6 @@ func TestPostPomodoros(t *testing.T) {
 				IsCompleted:         false,
 			},
 		}
-
 		if diff := cmp.Diff(got, want, pomodoroResponseCmpOpts); diff != "" {
 			t.Errorf("pomodoroResponse mismatch (-got +want):\n%s", diff)
 		}
@@ -58,9 +55,7 @@ func TestGetPomodoros(t *testing.T) {
 	t.Run("ポモドーロ記録を一覧取得する", func(t *testing.T) {
 		resp, body := doTestRequest(t, "GET", "/pomodoros", nil, nil, "pomodorosResponse")
 
-		if resp.StatusCode != 200 {
-			t.Error("Status code should be 200, but", resp.StatusCode)
-		}
+		checkStatusCode(t, resp, 200)
 
 		got, ok := body.(pomodorosResponse)
 		if !ok {
@@ -114,9 +109,7 @@ func TestGetRestCount(t *testing.T) {
 	t.Run("次の15分休憩までのカウントを取得する", func(t *testing.T) {
 		resp, body := doTestRequest(t, "GET", "/pomodoros/rest-count", nil, nil, "restCountResponse")
 
-		if resp.StatusCode != 200 {
-			t.Error("Status code should be 200, but", resp.StatusCode)
-		}
+		checkStatusCode(t, resp, 200)
 
 		got, ok := body.(restCountResponse)
 		if !ok {

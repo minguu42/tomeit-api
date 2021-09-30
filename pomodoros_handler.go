@@ -101,7 +101,7 @@ func deletePomodoro(db dbInterface) http.HandlerFunc {
 		pomodoro, err := db.getPomodoroByID(int(pomodoroID))
 		if err != nil {
 			log.Println("db.getPomodoroByID failed:", err)
-			_ = render.Render(w, r, badRequestError(err))
+			_ = render.Render(w, r, notFoundError(err))
 			return
 		}
 		if !user.hasPomodoro(pomodoro) {

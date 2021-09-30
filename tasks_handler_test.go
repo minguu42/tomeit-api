@@ -205,9 +205,7 @@ func TestPatchTask(t *testing.T) {
 		reqBody := strings.NewReader(`{"isCompleted": "false"}`)
 		resp, body := doTestRequest(t, "PATCH", "/tasks/2", nil, reqBody, "taskResponse")
 
-		if resp.StatusCode != 200 {
-			t.Error("Status code should be 200, but", resp.StatusCode)
-		}
+		checkStatusCode(t, resp, 200)
 
 		got, ok := body.(taskResponse)
 		if !ok {
@@ -226,13 +224,13 @@ func TestPatchTask(t *testing.T) {
 			t.Errorf("patchTask response mismatch (-got +want):\n%s", diff)
 		}
 	})
-	t.Run("URL に不適切な taskID を指定した場合は400エラーを返す", func(t *testing.T) {
+	t.Run("URL で不適切な taskID を指定した場合は400エラーを返す", func(t *testing.T) {
 		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
 		resp, _ := doTestRequest(t, "PATCH", "/tasks/一", nil, reqBody, "taskResponse")
 
 		checkStatusCode(t, resp, 400)
 	})
-	t.Run("存在しないリソースを指定した場合は404エラーを返す", func(t *testing.T) {
+	t.Run("存在しないタスクを指定した場合は404エラーを返す", func(t *testing.T) {
 		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
 		resp, _ := doTestRequest(t, "PATCH", "/tasks/3", nil, reqBody, "taskResponse")
 
@@ -247,9 +245,17 @@ func TestDeleteTask(t *testing.T) {
 	t.Run("タスク1を削除する", func(t *testing.T) {
 		resp, _ := doTestRequest(t, "DELETE", "/tasks/1", nil, nil, "")
 
-		if resp.StatusCode != 204 {
-			t.Error("Status code should be 204, but", resp.StatusCode)
-		}
+		checkStatusCode(t, resp, 204)
+	})
+	t.Run("URL で不適切な taskID を指定した場合は400エラーを返す", func(t *testing.T) {
+		resp, _ := doTestRequest(t, "DELETE", "/tasks/一", nil, nil, "")
+
+		checkStatusCode(t, resp, 400)
+	})
+	t.Run("存在しないタスクを指定した場合は404エラーを返す", func(t *testing.T) {
+		resp, _ := doTestRequest(t, "DELETE", "/tasks/1", nil, nil, "")
+
+		checkStatusCode(t, resp, 404)
 	})
 }
 

@@ -191,13 +191,13 @@ func patchTask(db dbInterface) http.HandlerFunc {
 		task, err := db.getTaskByID(int(taskID))
 		if err != nil {
 			log.Println("db.getTaskByID failed:", err)
-			_ = render.Render(w, r, badRequestError(err))
+			_ = render.Render(w, r, notFoundError(err))
 			return
 		}
 
 		if !user.hasTask(task) {
 			log.Println("user does not have a task")
-			_ = render.Render(w, r, AuthorizationError(errors.New("task's userID does not match your userID")))
+			_ = render.Render(w, r, authorizationError(errors.New("task's userID does not match your userID")))
 			return
 		}
 
@@ -251,7 +251,7 @@ func deleteTask(db dbInterface) http.HandlerFunc {
 
 		if !user.hasTask(task) {
 			log.Println("user does not have a task")
-			_ = render.Render(w, r, AuthorizationError(errors.New("task's userID does not match your userID")))
+			_ = render.Render(w, r, authorizationError(errors.New("task's userID does not match your userID")))
 			return
 		}
 

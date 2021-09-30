@@ -28,7 +28,7 @@ func badRequestError(err error) render.Renderer {
 	}
 }
 
-func AuthenticationError(err error) render.Renderer {
+func authenticationError(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 401,
@@ -37,7 +37,7 @@ func AuthenticationError(err error) render.Renderer {
 	}
 }
 
-func AuthorizationError(err error) render.Renderer {
+func authorizationError(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 403,
@@ -46,7 +46,7 @@ func AuthorizationError(err error) render.Renderer {
 	}
 }
 
-func NotFoundError(err error) render.Renderer {
+func notFoundError(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 404,

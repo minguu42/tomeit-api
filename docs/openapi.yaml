@@ -119,6 +119,52 @@ paths:
           $ref: "#/components/responses/AuthorizationError"
         "404":
           $ref: "#/components/responses/NotFoundError"
+    put:
+      summary: タスク更新 API
+      tags:
+        - tasks
+      parameters:
+        - $ref: "#/components/parameters/idToken"
+        - $ref: "#/components/parameters/taskID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - expectedPomodoroNum
+                - dueOn
+                - isCompleted
+              properties:
+                title:
+                  type: string
+                  example: タスク1
+                expectedPomodoroNum:
+                  type: integer
+                  example: 2
+                dueOn:
+                  type: string
+                  example: "2021-01-01T00:00:00Z"
+                isCompleted:
+                  type: boolean
+                  example: false
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/AuthenticationError"
+        "403":
+          $ref: "#/components/responses/AuthorizationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
     delete:
       summary: タスク削除 API
       tags:

@@ -164,6 +164,16 @@ func TestDeletePomodoro(t *testing.T) {
 
 		checkStatusCode(t, resp, 204)
 	})
+	t.Run("URL で不適切な pomodoroID を指定した場合は400エラーを返す", func(t *testing.T) {
+		resp, _ := doTestRequest(t, "DELETE", "/pomodoros/一", nil, nil, "")
+
+		checkStatusCode(t, resp, 400)
+	})
+	t.Run("存在しないポモドーロ記録を指定した場合は404エラーを返す", func(t *testing.T) {
+		resp, _ := doTestRequest(t, "DELETE", "/pomodoros/3", nil, nil, "")
+
+		checkStatusCode(t, resp, 404)
+	})
 }
 
 func TestGetRestCount(t *testing.T) {

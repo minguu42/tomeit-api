@@ -41,7 +41,7 @@ func TestPostTasks(t *testing.T) {
 			IsCompleted:         false,
 		}
 		if diff := cmp.Diff(got, want, taskResponseCmpOpts); diff != "" {
-			t.Errorf("taskResponse mismatch (-got +want):\n%s", diff)
+			t.Errorf("postTasks response mismatch (-got +want):\n%s", diff)
 		}
 	})
 	t.Run("リクエストボディに title が存在しない", func(t *testing.T) {
@@ -105,7 +105,7 @@ func TestGetTasks(t *testing.T) {
 			},
 		}
 		if diff := cmp.Diff(got, want); diff != "" {
-			t.Errorf("tasksResponse mismatch (-got +want):\n%s", diff)
+			t.Errorf("getTasks response mismatch (-got +want):\n%s", diff)
 		}
 	})
 	t.Run("完了済みタスク一覧を取得する", func(t *testing.T) {
@@ -137,7 +137,7 @@ func TestGetTasks(t *testing.T) {
 			},
 		}
 		if diff := cmp.Diff(got, want); diff != "" {
-			t.Errorf("tasksResponse mismatch (-got +want):\n%s", diff)
+			t.Errorf("getTasks response mismatch (-got +want):\n%s", diff)
 		}
 	})
 	t.Run("ある日付に完了したタスク一覧を取得する", func(t *testing.T) {
@@ -169,7 +169,7 @@ func TestGetTasks(t *testing.T) {
 			},
 		}
 		if diff := cmp.Diff(got, want); diff != "" {
-			t.Errorf("tasksResponse mismatch (-got +want):\n%s", diff)
+			t.Errorf("getTasks response mismatch (-got +want):\n%s", diff)
 		}
 	})
 }
@@ -182,9 +182,7 @@ func TestPatchTask(t *testing.T) {
 		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
 		resp, body := doTestRequest(t, "PATCH", "/tasks/1", nil, reqBody, "taskResponse")
 
-		if resp.StatusCode != 200 {
-			t.Error("Status code should be 200, but", resp.StatusCode)
-		}
+		checkStatusCode(t, resp, 200)
 
 		got, ok := body.(taskResponse)
 		if !ok {
@@ -199,9 +197,8 @@ func TestPatchTask(t *testing.T) {
 			DueOn:               "2021-01-01T00:00:00Z",
 			IsCompleted:         true,
 		}
-
 		if diff := cmp.Diff(got, want, taskResponseCmpOpts); diff != "" {
-			t.Errorf("tasksResponse mismatch (-got +want):\n%s", diff)
+			t.Errorf("patchTask response mismatch (-got +want):\n%s", diff)
 		}
 	})
 	t.Run("タスク2の isCompleted の値を false に変更する", func(t *testing.T) {
@@ -225,10 +222,21 @@ func TestPatchTask(t *testing.T) {
 			DueOn:               "2021-12-31T00:00:00Z",
 			IsCompleted:         false,
 		}
-
 		if diff := cmp.Diff(got, want, taskResponseCmpOpts); diff != "" {
-			t.Errorf("tasksResponse mismatch (-got +want):\n%s", diff)
+			t.Errorf("patchTask response mismatch (-got +want):\n%s", diff)
 		}
+	})
+	t.Run("URL に不適切な taskID を指定した場合は400エラーを返す", func(t *testing.T) {
+		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
+		resp, _ := doTestRequest(t, "PATCH", "/tasks/一", nil, reqBody, "taskResponse")
+
+		checkStatusCode(t, resp, 400)
+	})
+	t.Run("存在しないリソースを指定した場合は404エラーを返す", func(t *testing.T) {
+		reqBody := strings.NewReader(`{"isCompleted": "true"}`)
+		resp, _ := doTestRequest(t, "PATCH", "/tasks/3", nil, reqBody, "taskResponse")
+
+		checkStatusCode(t, resp, 404)
 	})
 }
 

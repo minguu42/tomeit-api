@@ -104,7 +104,7 @@ func deletePomodoro(db dbInterface) http.HandlerFunc {
 			_ = render.Render(w, r, badRequestError(err))
 			return
 		}
-		if user.hasPomodoro(pomodoro) {
+		if !user.hasPomodoro(pomodoro) {
 			log.Println("user does not have this pomodoro")
 			_ = render.Render(w, r, authorizationError(errors.New("you do not have this pomodoro")))
 			return

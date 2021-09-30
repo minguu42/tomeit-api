@@ -155,6 +155,17 @@ func TestGetPomodoros(t *testing.T) {
 	})
 }
 
+func TestDeletePomodoro(t *testing.T) {
+	setupTestDB(t)
+	setupTestPomodoros()
+	t.Cleanup(teardownTestDB)
+	t.Run("ポモドーロ記録 ID が1の記録を削除する", func(t *testing.T) {
+		resp, _ := doTestRequest(t, "DELETE", "/pomodoros/1", nil, nil, "")
+
+		checkStatusCode(t, resp, 204)
+	})
+}
+
 func TestGetRestCount(t *testing.T) {
 	setupTestDB(t)
 	t.Cleanup(teardownTestDB)

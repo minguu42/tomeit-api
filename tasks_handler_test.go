@@ -24,7 +24,7 @@ func TestPostTasks(t *testing.T) {
 
 		l := resp.Header.Get("Location")
 		if l != testUrl+"/tasks/1" {
-			t.Errorf("Location should be %v, but %v", testUrl+"/v0/tasks/1", l)
+			t.Errorf("Location should be %v, but %v", testUrl+"/tasks/1", l)
 		}
 
 		got, ok := body.(taskResponse)

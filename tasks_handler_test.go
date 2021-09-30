@@ -50,9 +50,8 @@ func TestPostTasks(t *testing.T) {
   "dueOn": "2021-01-01T00:00:00Z"
 }`)
 		resp, _ := doTestRequest(t, "POST", "/tasks", nil, reqBody, "taskResponse")
-		if resp.StatusCode != 400 {
-			t.Error("Status code should be 400, but", resp.StatusCode)
-		}
+
+		checkStatusCode(t, resp, 400)
 	})
 }
 

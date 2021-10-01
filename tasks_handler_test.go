@@ -238,6 +238,55 @@ func TestPatchTask(t *testing.T) {
 	})
 }
 
+func TestPutTask(t *testing.T) {
+	setupTestDB(t)
+	setupTestTasks()
+	t.Cleanup(teardownTestDB)
+	t.Run("タスク1の値を更新する", func(t *testing.T) {
+		reqBody := strings.NewReader(`
+{
+  "title": "新タスク1",
+  "expectedPomodoroNum": 2,
+  "dueOn": "2021-01-02T00:00:00Z",
+  "isCompleted": true
+}
+`)
+		resp, body := doTestRequest(t, "PUT", "/tasks/1", nil, reqBody, "taskResponse")
+
+		checkStatusCode(t, resp, 200)
+
+		got, ok := body.(taskResponse)
+		if !ok {
+			t.Fatal("Type Assertion failed")
+		}
+
+		want := taskResponse{
+			ID:                  1,
+			Title:               "新タスク1",
+			ExpectedPomodoroNum: 2,
+			ActualPomodoroNum:   0,
+			DueOn:               "2021-01-02T00:00:00Z",
+			IsCompleted:         true,
+		}
+		if diff := cmp.Diff(got, want, taskResponseCmpOpts); diff != "" {
+			t.Errorf("putTask response mismatch (-got +want):\n%s", diff)
+		}
+	})
+	t.Run("存在しないタスクを指定した場合は404エラーを返す", func(t *testing.T) {
+		reqBody := strings.NewReader(`
+{
+  "title": "新タスク1",
+  "expectedPomodoroNum": 2,
+  "dueOn": "2021-01-02T00:00:00Z",
+  "isCompleted": true
+}
+`)
+		resp, _ := doTestRequest(t, "PUT", "/tasks/3", nil, reqBody, "taskResponse")
+
+		checkStatusCode(t, resp, 404)
+	})
+}
+
 func TestDeleteTask(t *testing.T) {
 	setupTestDB(t)
 	setupTestTasks()

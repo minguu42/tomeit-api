@@ -142,7 +142,7 @@ func TestGetTasks(t *testing.T) {
 	})
 	t.Run("ある日付に完了したタスク一覧を取得する", func(t *testing.T) {
 		params := map[string]string{
-			"completedOn": "2021-08-31T00:00:00Z",
+			"createdOn": "2021-08-31T00:00:00Z",
 		}
 		resp, body := doTestRequest(t, "GET", "/tasks", &params, nil, "tasksResponse")
 

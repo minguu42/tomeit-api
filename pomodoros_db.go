@@ -34,16 +34,16 @@ func (db *DB) getPomodoroByID(id int) (*Pomodoro, error) {
 }
 
 type getPomodorosOptions struct {
-	completedOnExists bool
-	completedOn       time.Time
+	createdOnExists bool
+	createdOn       time.Time
 }
 
 func (db *DB) getPomodorosByUser(user *User, options *getPomodorosOptions) ([]Pomodoro, error) {
 	q := db.Joins("Task").Where("pomodoros.user_id = ?", user.ID).Order("pomodoros.created_at").Limit(30)
 
 	if options != nil {
-		if options.completedOnExists {
-			y, m, d := options.completedOn.Date()
+		if options.createdOnExists {
+			y, m, d := options.createdOn.Date()
 			start := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 			end := time.Date(y, m, d, 23, 59, 59, 0, time.UTC)
 			q = q.Where("pomodoros.created_at BETWEEN ? AND ?", start, end)

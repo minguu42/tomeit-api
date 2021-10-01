@@ -119,7 +119,7 @@ func TestGetPomodoros(t *testing.T) {
 	})
 	t.Run("ある日付に作成したポモドーロ記録を取得する", func(t *testing.T) {
 		params := map[string]string{
-			"completedOn": "2021-08-31T00:00:00Z",
+			"createdOn": "2021-08-31T00:00:00Z",
 		}
 		resp, body := doTestRequest(t, "GET", "/pomodoros", &params, nil, "pomodorosResponse")
 

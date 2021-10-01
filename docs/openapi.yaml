@@ -223,9 +223,9 @@ paths:
       description: 作成日時の昇順で最大30件まで取得する.
       parameters:
         - $ref: "#/components/parameters/idToken"
-        - name: completedOn
+        - name: createdOn
           in: "query"
-          description: 完了した日付で絞り込む
+          description: 作成日付で絞り込む
           schema:
             type: string
             example: "2021-01-01T00:00:00Z"

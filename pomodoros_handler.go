@@ -139,11 +139,11 @@ func (ps *pomodorosResponse) Render(w http.ResponseWriter, r *http.Request) erro
 func getPomodoros(db dbInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var options getPomodorosOptions
-		completedOnStr := r.URL.Query().Get("completedOn")
-		completedOn, err := time.Parse(time.RFC3339, completedOnStr)
+		createdOnStr := r.URL.Query().Get("createdOn")
+		createdOn, err := time.Parse(time.RFC3339, createdOnStr)
 		if err == nil {
-			options.completedOnExists = true
-			options.completedOn = completedOn
+			options.createdOnExists = true
+			options.createdOn = createdOn
 		}
 
 		user := r.Context().Value(userKey).(*User)

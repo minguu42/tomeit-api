@@ -20,7 +20,7 @@ type taskResponse struct {
 	ActualPomodoroNum   int    `json:"actualPomodoroNum"`
 	DueOn               string `json:"dueOn"`
 	IsCompleted         bool   `json:"isCompleted"`
-	CompletedOn         string `json:"completedOn"`
+	CompletedOn         string `json:"createdOn"`
 	CreatedAt           string `json:"createdAt"`
 	UpdatedAt           string `json:"updatedAt"`
 }
@@ -286,7 +286,7 @@ func getTasks(db dbInterface) http.HandlerFunc {
 			options.isCompleted = false
 		}
 
-		completedOnStr := r.URL.Query().Get("completedOn")
+		completedOnStr := r.URL.Query().Get("createdOn")
 		if completedOn, err := time.Parse(time.RFC3339, completedOnStr); err == nil {
 			options.completedOnExists = true
 			options.completedOn = completedOn

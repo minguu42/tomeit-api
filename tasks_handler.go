@@ -20,7 +20,7 @@ type taskResponse struct {
 	ActualPomodoroNum   int    `json:"actualPomodoroNum"`
 	DueOn               string `json:"dueOn"`
 	IsCompleted         bool   `json:"isCompleted"`
-	CompletedOn         string `json:"createdOn"`
+	CompletedOn         string `json:"completedOn"`
 	CreatedAt           string `json:"createdAt"`
 	UpdatedAt           string `json:"updatedAt"`
 }

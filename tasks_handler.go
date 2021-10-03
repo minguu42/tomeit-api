@@ -282,7 +282,7 @@ func getTasks(db dbInterface) http.HandlerFunc {
 			options.isCompletedExists = true
 			options.isCompleted = true
 		} else if isCompletedStr == "false" {
-			options.isCompletedExists = false
+			options.isCompletedExists = true
 			options.isCompleted = false
 		}
 

@@ -21,5 +21,14 @@ jobs:
           go-version: '1.17.1'
       - run: go mod tidy
       - run: docker-compose up -d db-test
+        env:
+          PORT: mock
+          DSN: mock
+          GOOGLE_CREDENTIALS_JSON: mock
+          ALLOW_ORIGINS: mock
+          MYSQL_ROOT_PASSWORD: mock
+          MYSQL_DATABASE: mock
+          MYSQL_USER: mock
+          MYSQL_PASSWORD: mock
       - run: go test
       - run: docker-compose down

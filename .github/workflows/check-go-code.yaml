@@ -31,4 +31,3 @@ jobs:
           MYSQL_USER: mock
           MYSQL_PASSWORD: mock
       - run: go test
-      - run: docker-compose down

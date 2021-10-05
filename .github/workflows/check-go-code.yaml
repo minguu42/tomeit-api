@@ -20,7 +20,8 @@ jobs:
         with:
           go-version: '1.17.1'
       - run: go mod tidy
-      - run: docker --version
-      - run: docker compose up --detach db-test
+      - run: docker --help
+      - run: docker compose --help
+      - run: docker compose up --help
       - run: go test
       - run: docker compose down

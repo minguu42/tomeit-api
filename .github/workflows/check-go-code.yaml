@@ -22,7 +22,7 @@ jobs:
       - run: go mod tidy
       - run: docker-compose up -d db-test
         env:
-          PORT: mock
+          PORT: 8000
           DSN: mock
           GOOGLE_CREDENTIALS_JSON: mock
           ALLOW_ORIGINS: mock

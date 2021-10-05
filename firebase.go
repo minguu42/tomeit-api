@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
+	"google.golang.org/api/option"
 )
 
 type firebaseAppInterface interface {
@@ -18,7 +20,7 @@ type FirebaseApp struct {
 }
 
 func InitFirebaseApp() *FirebaseApp {
-	app, err := firebase.NewApp(context.Background(), nil)
+	app, err := firebase.NewApp(context.Background(), nil, option.WithCredentialsJSON([]byte(os.Getenv("GOOGLE_CREDENTIALS_JSON"))))
 	if err != nil {
 		log.Fatalln("Init firebase app failed:", err)
 	}

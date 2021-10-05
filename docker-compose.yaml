@@ -7,7 +7,7 @@ services:
     environment:
       - PORT
       - DSN
-      - GOOGLE_APPLICATION_CREDENTIALS
+      - GOOGLE_CREDENTIALS_JSON
       - ALLOW_ORIGINS
     container_name: tomeit-api
     stdin_open: true
@@ -40,7 +40,7 @@ services:
     container_name: tomeit-api-db-test
     restart: always
     ports:
-      - 13306:3306
+      - "13306:3306"
     volumes:
       - data-test:/var/lib/mysql
   docs:
@@ -49,7 +49,7 @@ services:
     environment:
       API_URL: openapi.yaml
     ports:
-      - 8000:8080
+      - "8000:8080"
     volumes:
       - ./docs/openapi.yaml:/usr/share/nginx/html/openapi.yaml
 

@@ -21,7 +21,6 @@ jobs:
           go-version: '1.17.1'
       - run: go mod tidy
       - run: docker --help
-      - run: docker compose --help
-      - run: docker compose up --help
+      - run: docker-compose --help
       - run: go test
-      - run: docker compose down
+      - run: docker-compose down

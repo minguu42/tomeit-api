@@ -1,5 +1,7 @@
 # tomeit-api
 
+> :warning: このリポジトリのコードは [tomeit](https://github.com/minguu42/tomeit) に統合しました.
+
 tomeit-api は tomeit の REST API です.
 
 ## セットアップ
@@ -33,7 +35,7 @@ make dev
 ## 開発環境
 
 - プログラミング言語：Go
-- ライブラリ・フレームワーク：chi
+- 主なライブラリ・フレームワーク：chi, GORM
 - デプロイ：Heroku
 - フォーマッタ・リンタ：gofmt, goimports, govet, staticcheck
 - テスト：testing, net/http/httptest

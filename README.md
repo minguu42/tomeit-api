@@ -1,6 +1,6 @@
 # tomeit-api
 
-> :warning: tomeit-api は [tomeit](https://github.com/minguu42/tomeit) に統合し, こちらでの開発を終了しています.
+> :warning: tomeit-api は [tomeit](https://github.com/minguu42/tomeit) に統合し, このリポジトリでの開発を終了しています.
 
 tomeit-api は tomeit の REST API です.
 
